@@ -1,14 +1,14 @@
-# Makefile for Tiny Editor Project
+# Makefile for Tiny Editor Project (Windows only)
 
 # Compiler settings
-CXX = g++
+CXX = g++.exe
 CXXFLAGS = -std=c++11 -Wall -Wextra
 
 # Target executable name
-TARGET = ErrorWriter
+TARGET = nite.exe
 
 # Source files
-SRC = ErrorWriter.cpp
+SRC = nite.cpp
 
 # Object files
 OBJ = $(SRC:.cpp=.o)
@@ -24,10 +24,10 @@ $(TARGET): $(OBJ)
 $(OBJ): $(SRC)
 	$(CXX) $(CXXFLAGS) -c $(SRC)
 
-# Clean up compiled files
+# Clean up compiled files (Windows compatible)
 clean:
-	rm -f $(OBJ) $(TARGET)
+	del /f $(OBJ) $(TARGET)
 
-# Run the editor
+# Run the editor (Windows compatible)
 run: $(TARGET)
 	./$(TARGET)

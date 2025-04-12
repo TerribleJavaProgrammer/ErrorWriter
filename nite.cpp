@@ -1,3 +1,7 @@
+/*
+**NITE** - Nimble Interactive Text Editor
+*/
+
 #include <iostream>     // Includes the input/output stream library for console I/O operations.
 #include <vector>       // Includes the vector container library for dynamic arrays.
 #include <string>       // Includes the string class library for string manipulation.
@@ -1347,8 +1351,6 @@ class Editor {
                 else if (c == 27) {  // Escape key
                     if (hasSelection) {
                         cancelSelection();  // Cancel any active selection
-                    } else {
-                        break;  // Exit the loop if no selection is active
                     }
                 }
                 // Handle Tab key (insert tab)
