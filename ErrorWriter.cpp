@@ -26,7 +26,8 @@ struct Action {
         InsertLine,
         DeleteLine,
         InsertString,
-        DeleteSelection
+        DeleteSelection,
+        ReplaceAll
     };
 
     Type type;
@@ -58,6 +59,12 @@ public:
     int selectionEndX = 0;
     int selectionEndY = 0;
 
+    // Search variables
+    std::string searchQuery;
+    int lastSearchPos = -1;
+    int lastSearchLine = -1;
+    bool searchActive = false;
+
     Editor() {
         getWindowSize(screenRows, screenCols);
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -85,12 +92,17 @@ public:
         // Add cursor position (X, Y)
         status += " | Row: " + std::to_string(cursorY + 1) + " | Col: " + std::to_string(cursorX + 1);  // +1 to make it 1-based
         
+        // Add search information if active
+        if (searchActive) {
+            status += " | Searching: \"" + searchQuery + "\"";
+        }
+        
         if ((int)status.size() < screenCols)
             sb << status << std::string(screenCols - status.size(), ' ');
         else
             sb << status.substr(0, screenCols);
     }
-    
+
     // Function to determine if a position is within selection
     bool isPositionSelected(int fileRow, int fileCol) {
         if (!hasSelection) return false;
@@ -657,6 +669,206 @@ public:
         }
     }
 
+    // Function to find the next occurrence of the search query
+    void findNext() {
+        if (searchQuery.empty()) return;
+        
+        // Start from current cursor position
+        int startLine = cursorY;
+        int startPos = cursorX;
+        
+        // If we just found something, move one character forward to avoid finding the same instance
+        if (lastSearchLine == startLine && lastSearchPos == startPos && startPos < (int)lines[startLine].size()) {
+            startPos++;
+        }
+        
+        // First search from cursor to end of file
+        for (int i = startLine; i < (int)lines.size(); i++) {
+            // For the first line, start from the cursor position
+            int pos = (i == startLine) ? startPos : 0;
+            
+            // Find the query in the current line
+            size_t found = lines[i].find(searchQuery, pos);
+            
+            if (found != std::string::npos) {
+                // Found a match
+                cursorY = i;
+                cursorX = found;
+                
+                // Create a selection for the found text
+                hasSelection = true;
+                selectionStartX = found;
+                selectionStartY = i;
+                selectionEndX = found + searchQuery.length();
+                selectionEndY = i;
+                
+                // Record this position for next search
+                lastSearchLine = i;
+                lastSearchPos = found;
+                
+                return;
+            }
+        }
+        
+        // If we didn't find anything, wrap around to the start of the file
+        for (int i = 0; i <= startLine; i++) {
+            // For the last line (which is our starting line), only search up to the cursor
+            int endPos = (i == startLine) ? startPos : (int)lines[i].size();
+            
+            // Find the query in the current line
+            size_t found = lines[i].find(searchQuery, 0);
+            
+            if (found != std::string::npos && (i < startLine || found < endPos)) {
+                // Found a match
+                cursorY = i;
+                cursorX = found;
+                
+                // Create a selection for the found text
+                hasSelection = true;
+                selectionStartX = found;
+                selectionStartY = i;
+                selectionEndX = found + searchQuery.length();
+                selectionEndY = i;
+                
+                // Record this position for next search
+                lastSearchLine = i;
+                lastSearchPos = found;
+                
+                return;
+            }
+        }
+        
+        // If we get here, the query wasn't found anywhere in the file
+        // Keep cursor where it is
+    }
+
+    // Function to initiate a search
+    void search() {
+        // Clear the console at the bottom for input
+        moveCursor(screenRows - 1, 0);
+        std::cout << std::string(screenCols, ' ');
+        moveCursor(screenRows - 1, 0);
+        std::cout << "Search: ";
+        
+        // Get search input
+        std::string query;
+        char c;
+        while ((c = _getch()) != '\r') {
+            if (c == 27) { // ESC - cancel search
+                searchActive = false;
+                return;
+            } else if (c == 8) { // Backspace
+                if (!query.empty()) {
+                    query.pop_back();
+                    // Update the display
+                    moveCursor(screenRows - 1, 0);
+                    std::cout << "Search: " << query << ' ';
+                }
+            } else if (c >= 32 && c <= 126) { // Printable characters
+                query += c;
+                // Update the display
+                moveCursor(screenRows - 1, 8 + query.size() - 1);
+                std::cout << c;
+            }
+        }
+        
+        if (!query.empty()) {
+            searchQuery = query;
+            searchActive = true;
+            lastSearchLine = -1;
+            lastSearchPos = -1;
+            findNext();
+        }
+    }
+
+    // Function to replace all occurrences of the search text
+    void replaceAll() {
+        // If we don't have a search query yet, do a search first
+        if (searchQuery.empty()) {
+            search();
+            if (searchQuery.empty()) return; // If still no search query, return
+        }
+        
+        // Get the text to replace with
+        moveCursor(screenRows - 1, 0);
+        std::cout << std::string(screenCols, ' ');
+        moveCursor(screenRows - 1, 0);
+        std::cout << "Replace all with: ";
+        
+        std::string replaceText;
+        char c;
+        while ((c = _getch()) != '\r') {
+            if (c == 27) { // ESC - cancel replace
+                return;
+            } else if (c == 8) { // Backspace
+                if (!replaceText.empty()) {
+                    replaceText.pop_back();
+                    // Update the display
+                    moveCursor(screenRows - 1, 0);
+                    std::cout << "Replace all with: " << replaceText << ' ';
+                }
+            } else if (c >= 32 && c <= 126) { // Printable characters
+                replaceText += c;
+                // Update the display
+                moveCursor(screenRows - 1, 17 + replaceText.size() - 1);
+                std::cout << c;
+            }
+        }
+        
+        // Create a combined action for undo/redo
+        // This will treat all replacements as a single action
+        Action action;
+        action.type = Action::ReplaceAll;
+        action.text = replaceText;        // The new text
+        action.oldText = searchQuery;     // The text being replaced
+        
+        // Keep track of how many replacements were made
+        int replacementCount = 0;
+        
+        // For each line in the document
+        for (int i = 0; i < (int)lines.size(); i++) {
+            std::string& line = lines[i];
+            size_t pos = 0;
+            
+            // While we can find the search query in this line
+            while ((pos = line.find(searchQuery, pos)) != std::string::npos) {
+                // Replace the occurrence
+                line.replace(pos, searchQuery.length(), replaceText);
+                
+                // Move position forward to avoid infinite loop
+                pos += replaceText.length();
+                
+                replacementCount++;
+            }
+        }
+        
+        // Only add to undo stack if replacements were made
+        if (replacementCount > 0) {
+            undoStack.push_back(action);
+            redoStack.clear();
+            dirty = true;
+            
+            // Show the number of replacements in the status bar
+            moveCursor(screenRows - 1, 0);
+            std::cout << std::string(screenCols, ' ');
+            moveCursor(screenRows - 1, 0);
+            std::cout << "Replaced " << replacementCount << " occurrences.";
+            // Wait for a key press before continuing
+            _getch();
+        } else {
+            // Show that no replacements were made
+            moveCursor(screenRows - 1, 0);
+            std::cout << std::string(screenCols, ' ');
+            moveCursor(screenRows - 1, 0);
+            std::cout << "No occurrences found.";
+            // Wait for a key press before continuing
+            _getch();
+        }
+        
+        // Cancel selection if any
+        cancelSelection();
+    }
+
     void openFile(const std::string &fname) {
         filename = fname;
         std::ifstream file(fname);
@@ -796,6 +1008,22 @@ public:
                     }
                 }
                 break;
+            case Action::ReplaceAll:
+                // For each line in the document
+                for (int i = 0; i < (int)lines.size(); i++) {
+                    std::string& line = lines[i];
+                    size_t pos = 0;
+                    
+                    // While we can find the replacement text
+                    while ((pos = line.find(action.text, pos)) != std::string::npos) {
+                        // Replace back with the original query
+                        line.replace(pos, action.text.length(), action.oldText);
+                        
+                        // Move position forward
+                        pos += action.oldText.length();
+                    }
+                }
+                break;
         }
     
         redoStack.push_back(action);  // Push the undone action to the redo stack
@@ -869,6 +1097,22 @@ public:
                     deleteSelection();
                 }
                 break;
+            case Action::ReplaceAll:
+                // For each line in the document
+                for (int i = 0; i < (int)lines.size(); i++) {
+                    std::string& line = lines[i];
+                    size_t pos = 0;
+                    
+                    // While we can find the search query
+                    while ((pos = line.find(action.oldText, pos)) != std::string::npos) {
+                        // Replace with the replacement text
+                        line.replace(pos, action.oldText.length(), action.text);
+                        
+                        // Move position forward
+                        pos += action.text.length();
+                    }
+                }
+                break;
         }
     
         undoStack.push_back(action);  // Push the redone action to the undo stack
@@ -925,6 +1169,18 @@ public:
                 }
                 
                 moveCursorKey(c2, shiftPressed);
+            }
+            // Check for Ctrl + F (find)
+            else if (c == 6) {  // ASCII value for Ctrl+F
+                search();
+            }
+            // Check for Ctrl + H (replace)
+            else if (c == 8 && ctrlPressed) {  // Ctrl+H
+                replaceAll();
+            }
+            // Add a case for F3 (find next)
+            else if (c == 0 && _getch() == 61) {  // F3 key
+                findNext();
             }
             else if (c == 27) {  // Escape - cancel selection and/or exit
                 if (hasSelection) {
