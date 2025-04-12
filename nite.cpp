@@ -538,7 +538,8 @@ class Nite {
                     if (line[x] == '<') {
                         int start = x;
                         int endPos = line.find('>', x + 1);
-                        if (endPos != std::string::npos && endPos < lineEnd) {
+                        if (static_cast<std::size_t>(endPos) != std::string::npos
+                            && static_cast<std::size_t>(endPos) < static_cast<std::size_t>(lineEnd)) {
                             for (int i = start; i <= endPos; ++i) {
                                 int bufferPosBracket = y * screenCols + (i - colOffset);
                                 attributes[bufferPosBracket + gutterWidth] = FOREGROUND_RED | FOREGROUND_INTENSITY;
@@ -1143,7 +1144,9 @@ class Nite {
                 // Find the query in the current line starting from the beginning
                 size_t found = lines[i].find(searchQuery, 0);
         
-                if (found != std::string::npos && (i < startLine || found < endPos)) {
+                if (static_cast<std::size_t>(found) != std::string::npos
+                    && (static_cast<std::size_t>(i) < static_cast<std::size_t>(startLine)
+                    || static_cast<std::size_t>(found) < static_cast<std::size_t>(endPos))) {
                     // If found, update cursor position and create a selection for the found text
                     cursorY = i;
                     cursorX = found;
@@ -1701,6 +1704,12 @@ class Nite {
                 drawEditor();
             }
         }        
+
+        void setConsoleBackgroundColor(int colorCode) {
+            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);  // Get console handle
+            WORD color = colorCode << 4; // Shift background color into the higher nibble
+            SetConsoleTextAttribute(hOut, color);  // Set text attributes
+        }
 };
 
 int main(int argc, char* argv[]) {
