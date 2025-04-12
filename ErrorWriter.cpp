@@ -70,12 +70,16 @@ public:
         std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);
         if (dirty) status += " (modified)";
         if (hasSelection) status += " (text selected)";
+        
+        // Add cursor position (X, Y)
+        status += " | Row: " + std::to_string(cursorY + 1) + " | Col: " + std::to_string(cursorX + 1);  // +1 to make it 1-based
+        
         if ((int)status.size() < screenCols)
             sb << status << std::string(screenCols - status.size(), ' ');
         else
             sb << status.substr(0, screenCols);
     }
-
+    
     // Function to determine if a position is within selection
     bool isPositionSelected(int fileRow, int fileCol) {
         if (!hasSelection) return false;
@@ -155,7 +159,6 @@ public:
                 if ((int)displayLine.size() < screenCols) {
                     displayLine += std::string(screenCols - displayLine.size(), ' ');
                 }
-                
                 buffer << displayLine;
             } else {
                 // Add a tilde line for empty space
