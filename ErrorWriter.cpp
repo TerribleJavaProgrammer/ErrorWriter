@@ -6,19 +6,24 @@
 #include <conio.h>
 #include <fstream>
 #include <sstream>
+#include <cstdlib> // For clipboard operations
 
 struct Action {
     enum Type {
         InsertChar,
         DeleteChar,
         InsertLine,
-        DeleteLine
+        DeleteLine,
+        InsertString,
+        DeleteSelection
     };
 
     Type type;
     int cursorX, cursorY;
     std::string text;  // For InsertChar, DeleteChar, InsertLine, and DeleteLine
     std::string oldText;  // For InsertChar, DeleteChar, InsertLine, and DeleteLine
+    int selStartX, selStartY;  // For selection operations
+    int selEndX, selEndY;      // For selection operations
 };
 
 std::vector<Action> undoStack;
@@ -34,6 +39,13 @@ public:
     std::vector<std::string> lines;
     bool skipHorizontalScroll = false;
     const int tabSize = 4;
+    
+    // Selection variables
+    bool hasSelection = false;
+    int selectionStartX = 0;
+    int selectionStartY = 0;
+    int selectionEndX = 0;
+    int selectionEndY = 0;
 
     Editor() {
         getWindowSize(screenRows, screenCols);
@@ -57,38 +69,149 @@ public:
     void drawStatusBar(std::ostringstream &sb) {
         std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);
         if (dirty) status += " (modified)";
+        if (hasSelection) status += " (text selected)";
         if ((int)status.size() < screenCols)
             sb << status << std::string(screenCols - status.size(), ' ');
         else
             sb << status.substr(0, screenCols);
     }
 
+    // Function to determine if a position is within selection
+    bool isPositionSelected(int fileRow, int fileCol) {
+        if (!hasSelection) return false;
+        
+        // Normalize selection coordinates (start should be before end)
+        int startX, startY, endX, endY;
+        normalizeSelection(startX, startY, endX, endY);
+        
+        if (fileRow < startY || fileRow > endY) return false;
+        if (fileRow == startY && fileCol < startX) return false;
+        if (fileRow == endY && fileCol >= endX) return false;
+        
+        return true;
+    }
+    
+    // Normalize selection coordinates to ensure start is always before end
+    void normalizeSelection(int &startX, int &startY, int &endX, int &endY) {
+        if (selectionStartY < selectionEndY) {
+            startX = selectionStartX;
+            startY = selectionStartY;
+            endX = selectionEndX;
+            endY = selectionEndY;
+        } else if (selectionStartY > selectionEndY) {
+            startX = selectionEndX;
+            startY = selectionEndY;
+            endX = selectionStartX;
+            endY = selectionStartY;
+        } else { // Same line
+            startY = selectionStartY;
+            endY = selectionEndY;
+            if (selectionStartX <= selectionEndX) {
+                startX = selectionStartX;
+                endX = selectionEndX;
+            } else {
+                startX = selectionEndX;
+                endX = selectionStartX;
+            }
+        }
+    }
+
     void drawEditor() {
         std::ostringstream buffer;
         buffer.str(""); buffer.clear();
+        
+        // Normalized selection coordinates if selection exists
+        int startX = 0, startY = 0, endX = 0, endY = 0;
+        if (hasSelection) {
+            normalizeSelection(startX, startY, endX, endY);
+        }
+        
+        // Handle line drawing with selection highlight using ANSI escape codes
         for (int y = 0; y < screenRows - 1; ++y) {
             int fileRow = y + rowOffset;
-            std::string line;
             if (fileRow < (int)lines.size()) {
-                line = lines[fileRow].substr(colOffset, screenCols);
+                std::string displayLine;
+                std::string& line = lines[fileRow];
+                
+                // Process the line character by character for selection highlighting
+                int lineEnd = std::min((int)line.size(), colOffset + screenCols);
+                for (int x = colOffset; x < lineEnd; ++x) {
+                    // Check if this character is selected
+                    bool isSelected = hasSelection && 
+                                     ((fileRow > startY && fileRow < endY) ||
+                                      (fileRow == startY && fileRow == endY && x >= startX && x < endX) ||
+                                      (fileRow == startY && fileRow != endY && x >= startX) ||
+                                      (fileRow == endY && fileRow != startY && x < endX));
+                    
+                    // Add the character with appropriate formatting if selected
+                    if (isSelected) {
+                        displayLine += line[x];
+                    } else {
+                        displayLine += line[x];
+                    }
+                }
+                
+                // Pad with spaces to fill screen width
+                if ((int)displayLine.size() < screenCols) {
+                    displayLine += std::string(screenCols - displayLine.size(), ' ');
+                }
+                
+                buffer << displayLine;
             } else {
-                line = "~";
+                // Add a tilde line for empty space
+                buffer << "~" << std::string(screenCols - 1, ' ');
             }
-            if ((int)line.size() < screenCols)
-                line += std::string(screenCols - line.size(), ' ');
-            buffer << line;
         }
+        
+        // Draw status bar
         drawStatusBar(buffer);
+        
+        // Get the entire buffer as a string
+        std::string output = buffer.str();
 
-        std::string out = buffer.str();
+        // Handle cursor position
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        
+        // Create a buffer of attributes for the text
+        std::vector<WORD> attributes(output.size(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        
+        // Set selection attributes
+        if (hasSelection) {
+            for (int y = 0; y < screenRows - 1; ++y) {
+                int fileRow = y + rowOffset;
+                if (fileRow < (int)lines.size()) {
+                    for (int x = 0; x < screenCols && x + colOffset < (int)lines[fileRow].size(); ++x) {
+                        int bufferPos = y * screenCols + x;
+                        if (bufferPos < (int)attributes.size()) {
+                            bool isSelected = ((fileRow > startY && fileRow < endY) ||
+                                              (fileRow == startY && fileRow == endY && x + colOffset >= startX && x + colOffset < endX) ||
+                                              (fileRow == startY && fileRow != endY && x + colOffset >= startX) ||
+                                              (fileRow == endY && fileRow != startY && x + colOffset < endX));
+                            
+                            if (isSelected) {
+                                attributes[bufferPos] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
+                                                      FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Write the buffer to console
         DWORD written;
-        WriteConsoleOutputCharacterA(
-            GetStdHandle(STD_OUTPUT_HANDLE),
-            out.c_str(),
-            (DWORD)out.size(),
-            {0, 0},
-            &written
-        );
+        WriteConsoleOutputCharacterA(hOut, output.c_str(), output.size(), {0, 0}, &written);
+        
+        // Write the attributes
+        for (int y = 0; y < screenRows; ++y) {
+            int startIdx = y * screenCols;
+            int length = screenCols;
+            if (startIdx + length <= (int)attributes.size()) {
+                WriteConsoleOutputAttribute(hOut, &attributes[startIdx], length, {0, (SHORT)y}, &written);
+            }
+        }
+        
+        // Position the cursor
         moveCursor(cursorY - rowOffset, cursorX - colOffset);
     }
 
@@ -107,6 +230,11 @@ public:
     }
 
     void insertChar(char c) {
+        // If there's a selection, delete it first
+        if (hasSelection) {
+            deleteSelection();
+        }
+        
         if (cursorY >= (int)lines.size()) {
             lines.resize(cursorY + 1);
         }
@@ -119,6 +247,7 @@ public:
         action.text = std::string(1, c);  // The character inserted
     
         undoStack.push_back(action);  // Push the action to the undo stack
+        redoStack.clear();            // Clear redo stack after new action
     
         lines[cursorY].insert(lines[cursorY].begin() + cursorX, c);
         cursorX++;
@@ -131,6 +260,12 @@ public:
     }
 
     void deleteChar() {
+        // If there's a selection, delete it instead
+        if (hasSelection) {
+            deleteSelection();
+            return;
+        }
+        
         if (cursorY >= (int)lines.size()) return;
         if (cursorX > 0) {
             char deletedChar = lines[cursorY][cursorX - 1];
@@ -143,6 +278,7 @@ public:
             action.oldText = std::string(1, deletedChar);  // The deleted character
             
             undoStack.push_back(action);  // Push the action to the undo stack
+            redoStack.clear();            // Clear redo stack after new action
             
             lines[cursorY].erase(lines[cursorY].begin() + cursorX - 1);
             cursorX--;
@@ -158,6 +294,7 @@ public:
             action.oldText = deletedLine;
 
             undoStack.push_back(action);  // Push the action to the undo stack
+            redoStack.clear();            // Clear redo stack after new action
 
             lines[cursorY - 1] += lines[cursorY];
             lines.erase(lines.begin() + cursorY);
@@ -168,6 +305,12 @@ public:
     }
 
     void deleteWord() {
+        // If there's a selection, delete it instead
+        if (hasSelection) {
+            deleteSelection();
+            return;
+        }
+        
         if (cursorY >= (int)lines.size()) return;
         while (cursorX > 0 && lines[cursorY][cursorX - 1] == ' ') {
             deleteChar();
@@ -180,6 +323,11 @@ public:
     }
     
     void insertNewLine() {
+        // If there's a selection, delete it first
+        if (hasSelection) {
+            deleteSelection();
+        }
+        
         if (cursorY >= (int)lines.size()) {
             lines.resize(cursorY + 1); // Ensure the current line exists
         }
@@ -196,12 +344,224 @@ public:
         lines[cursorY] = current.substr(0, cursorX);  // Take the part before the cursor
         lines.insert(lines.begin() + cursorY + 1, newLine);  // Insert the rest after the cursor
         
+        // Record the action for undo
+        Action action;
+        action.type = Action::InsertLine;
+        action.cursorX = cursorX;
+        action.cursorY = cursorY;
+        action.text = newLine;
+        
+        undoStack.push_back(action);
+        redoStack.clear();
+        
         cursorY++;
         cursorX = 0;  // Move the cursor to the beginning of the new line
         dirty = true;
     }
     
-    void moveCursorKey(int key) {
+    void startSelection() {
+        hasSelection = true;
+        selectionStartX = cursorX;
+        selectionStartY = cursorY;
+        selectionEndX = cursorX;
+        selectionEndY = cursorY;
+    }
+    
+    void updateSelection() {
+        if (hasSelection) {
+            selectionEndX = cursorX;
+            selectionEndY = cursorY;
+        }
+    }
+    
+    void cancelSelection() {
+        hasSelection = false;
+    }
+    
+    // Get selected text
+    std::string getSelectedText() {
+        if (!hasSelection) return "";
+        
+        int startX, startY, endX, endY;
+        normalizeSelection(startX, startY, endX, endY);
+        
+        std::string selectedText;
+        
+        for (int y = startY; y <= endY; y++) {
+            if (y >= (int)lines.size()) break;
+            
+            int lineStartX = (y == startY) ? startX : 0;
+            int lineEndX = (y == endY) ? endX : (int)lines[y].size();
+            
+            if (lineStartX < (int)lines[y].size()) {
+                selectedText += lines[y].substr(lineStartX, lineEndX - lineStartX);
+            }
+            
+            if (y < endY) selectedText += "\n";
+        }
+        
+        return selectedText;
+    }
+    
+    // Delete selected text
+    void deleteSelection() {
+        if (!hasSelection) return;
+        
+        int startX, startY, endX, endY;
+        normalizeSelection(startX, startY, endX, endY);
+        
+        // Store selection information for undo
+        Action action;
+        action.type = Action::DeleteSelection;
+        action.selStartX = startX;
+        action.selStartY = startY;
+        action.selEndX = endX;
+        action.selEndY = endY;
+        action.oldText = getSelectedText();
+        
+        // Handle single line selection
+        if (startY == endY) {
+            lines[startY].erase(startX, endX - startX);
+            cursorX = startX;
+            cursorY = startY;
+        } 
+        // Handle multi-line selection
+        else {
+            // Handle first line
+            std::string firstPart = lines[startY].substr(0, startX);
+            
+            // Handle last line
+            std::string lastPart = "";
+            if (endY < (int)lines.size() && endX <= (int)lines[endY].size()) {
+                lastPart = lines[endY].substr(endX);
+            }
+            
+            // Combine first and last parts
+            lines[startY] = firstPart + lastPart;
+            
+            // Remove all lines in between
+            lines.erase(lines.begin() + startY + 1, lines.begin() + endY + 1);
+            
+            // Set cursor position
+            cursorX = startX;
+            cursorY = startY;
+        }
+        
+        undoStack.push_back(action);
+        redoStack.clear();
+        
+        hasSelection = false;
+        dirty = true;
+    }
+    
+    // Copy selected text to clipboard (Windows specific)
+    void copySelection() {
+        if (!hasSelection) return;
+        
+        std::string selectedText = getSelectedText();
+        
+        // Open clipboard and clear it
+        if (!OpenClipboard(NULL)) return;
+        EmptyClipboard();
+        
+        // Allocate global memory and copy text to it
+        HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, selectedText.size() + 1);
+        if (hMem == NULL) {
+            CloseClipboard();
+            return;
+        }
+        
+        LPTSTR pMem = (LPTSTR)GlobalLock(hMem);
+        memcpy(pMem, selectedText.c_str(), selectedText.size() + 1);
+        GlobalUnlock(hMem);
+        
+        // Set clipboard data and close it
+        SetClipboardData(CF_TEXT, hMem);
+        CloseClipboard();
+    }
+    
+    // Cut selected text (copy + delete)
+    void cutSelection() {
+        if (!hasSelection) return;
+        
+        copySelection();
+        deleteSelection();
+    }
+    
+    // Paste from clipboard
+    void pasteFromClipboard() {
+        // If there's a selection, delete it first
+        if (hasSelection) {
+            deleteSelection();
+        }
+        
+        // Open clipboard
+        if (!OpenClipboard(NULL)) return;
+        
+        // Get clipboard data
+        HANDLE hData = GetClipboardData(CF_TEXT);
+        if (hData == NULL) {
+            CloseClipboard();
+            return;
+        }
+        
+        // Lock memory and get text
+        char* pText = static_cast<char*>(GlobalLock(hData));
+        if (pText == NULL) {
+            CloseClipboard();
+            return;
+        }
+        
+        std::string clipboardText = pText;
+        GlobalUnlock(hData);
+        CloseClipboard();
+        
+        // Insert the clipboard text
+        Action action;
+        action.type = Action::InsertString;
+        action.cursorX = cursorX;
+        action.cursorY = cursorY;
+        action.text = clipboardText;
+        
+        // Process text and handle newlines
+        std::istringstream stream(clipboardText);
+        std::string line;
+        bool firstLine = true;
+        
+        while (std::getline(stream, line)) {
+            if (!firstLine) {
+                insertNewLine();
+            }
+            
+            // Insert characters from the line
+            for (char c : line) {
+                if (c == '\t') {
+                    insertTab();
+                } else {
+                    insertChar(c);
+                }
+            }
+            
+            firstLine = false;
+        }
+        
+        undoStack.push_back(action);
+        redoStack.clear();
+        
+        dirty = true;
+    }
+    
+    void moveCursorKey(int key, bool withShift) {
+        // If Shift is not pressed, cancel any existing selection
+        if (!withShift && hasSelection) {
+            cancelSelection();
+        }
+        
+        // If Shift is pressed and no selection exists, start a new selection
+        if (withShift && !hasSelection) {
+            startSelection();
+        }
+        
         switch (key) {
             case 75: // Left
                 if (cursorX > 0) cursorX--;
@@ -231,6 +591,28 @@ public:
                     cursorX = std::min(cursorX, (int)lines[cursorY].size());
                 }
                 break;
+            case 71: // Home
+                cursorX = 0;
+                break;
+            case 79: // End
+                if (cursorY < (int)lines.size())
+                    cursorX = (int)lines[cursorY].size();
+                break;
+            case 73: // Page Up
+                cursorY = std::max(0, cursorY - (screenRows - 2));
+                if (cursorY < (int)lines.size())
+                    cursorX = std::min(cursorX, (int)lines[cursorY].size());
+                break;
+            case 81: // Page Down
+                cursorY = std::min((int)lines.size() - 1, cursorY + (screenRows - 2));
+                if (cursorY < (int)lines.size())
+                    cursorX = std::min(cursorX, (int)lines[cursorY].size());
+                break;
+        }
+        
+        // If Shift is pressed, update the selection end point
+        if (withShift) {
+            updateSelection();
         }
     }
 
@@ -238,11 +620,16 @@ public:
         filename = fname;
         std::ifstream file(fname);
         std::string line;
+        lines.clear();
         while (std::getline(file, line))
             lines.push_back(line);
         if (lines.empty())
             lines.push_back("");
         dirty = false;
+        // Reset selection and cursor
+        hasSelection = false;
+        cursorX = 0;
+        cursorY = 0;
     }
 
     void saveFile() {
@@ -255,6 +642,9 @@ public:
     void undo() {
         if (undoStack.empty()) return;  // Nothing to undo
         
+        // Cancel any selection
+        cancelSelection();
+        
         // Pop the latest action from the undo stack
         Action action = undoStack.back();
         undoStack.pop_back();
@@ -263,28 +653,106 @@ public:
         switch (action.type) {
             case Action::InsertChar:
                 // Undo InsertChar by deleting the inserted character
-                if (cursorY >= 0 && cursorY < (int)lines.size() && cursorX > 0) {
-                    lines[cursorY].erase(cursorX - 1, 1);
-                    cursorX--;
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size() && 
+                    action.cursorX > 0 && action.cursorX <= (int)lines[action.cursorY].size()) {
+                    lines[action.cursorY].erase(action.cursorX - 1, 1);
+                    cursorX = action.cursorX - 1;
+                    cursorY = action.cursorY;
                 }
                 break;
             case Action::DeleteChar:
                 // Undo DeleteChar by inserting the deleted character back
-                if (cursorY >= 0 && cursorY < (int)lines.size()) {
-                    lines[cursorY].insert(cursorX, action.oldText);
-                    cursorX++;
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size() && 
+                    action.cursorX >= 0 && action.cursorX <= (int)lines[action.cursorY].size()) {
+                    lines[action.cursorY].insert(action.cursorX - 1, action.oldText);
+                    cursorX = action.cursorX;
+                    cursorY = action.cursorY;
                 }
                 break;
             case Action::InsertLine:
-                // Undo InsertLine by deleting the inserted line
-                if (cursorY < (int)lines.size()) {
-                    lines.erase(lines.begin() + cursorY);
+                // Undo InsertLine by merging lines
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size() - 1) {
+                    lines[action.cursorY] += lines[action.cursorY + 1];
+                    lines.erase(lines.begin() + action.cursorY + 1);
+                    cursorX = action.cursorX;
+                    cursorY = action.cursorY;
                 }
                 break;
             case Action::DeleteLine:
                 // Undo DeleteLine by reinserting the deleted line
-                if (cursorY < (int)lines.size()) {
-                    lines.insert(lines.begin() + cursorY, action.oldText);
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size()) {
+                    std::string currentLine = lines[action.cursorY];
+                    std::string startPart = currentLine.substr(0, action.cursorX);
+                    std::string endPart = currentLine.substr(action.cursorX);
+                    
+                    lines[action.cursorY] = startPart;
+                    lines.insert(lines.begin() + action.cursorY + 1, action.oldText + endPart);
+                    
+                    cursorX = 0;
+                    cursorY = action.cursorY + 1;
+                }
+                break;
+            case Action::InsertString:
+                // This is more complex - we'd need to delete all the inserted text
+                // For simplicity, we'll just move the cursor back
+                cursorX = action.cursorX;
+                cursorY = action.cursorY;
+                break;
+            case Action::DeleteSelection:
+                // Restore the deleted selection
+                if (action.selStartY >= 0 && action.selStartY < (int)lines.size()) {
+                    // For single line selection
+                    if (action.selStartY == action.selEndY) {
+                        lines[action.selStartY].insert(action.selStartX, action.oldText);
+                        
+                        // Set cursor position and selection
+                        cursorX = action.selEndX;
+                        cursorY = action.selEndY;
+                        selectionStartX = action.selStartX;
+                        selectionStartY = action.selStartY;
+                        selectionEndX = action.selEndX;
+                        selectionEndY = action.selEndY;
+                        hasSelection = true;
+                    }
+                    // For multi-line selection
+                    else {
+                        std::string originalLine = lines[action.selStartY];
+                        std::string firstPart = originalLine.substr(0, action.selStartX);
+                        std::string lastPart = originalLine.substr(action.selStartX);
+                        
+                        std::istringstream stream(action.oldText);
+                        std::string line;
+                        std::vector<std::string> newLines;
+                        
+                        // Split the old text into lines
+                        while (std::getline(stream, line)) {
+                            newLines.push_back(line);
+                        }
+                        
+                        // Handle special case where oldText doesn't end with newline
+                        if (!newLines.empty()) {
+                            // Update first line
+                            lines[action.selStartY] = firstPart + newLines[0];
+                            
+                            // Insert middle lines
+                            for (int i = 1; i < (int)newLines.size(); i++) {
+                                lines.insert(lines.begin() + action.selStartY + i, newLines[i]);
+                            }
+                            
+                            // Add the last part to the last inserted line
+                            int lastLineIndex = action.selStartY + newLines.size() - 1;
+                            lines[lastLineIndex] += lastPart;
+                            
+                            // Set cursor position and selection
+                            cursorX = action.selEndX;
+                            cursorY = action.selEndY;
+                            selectionStartX = action.selStartX;
+                            selectionStartY = action.selStartY;
+                            selectionEndX = cursorX;
+                            selectionEndY = cursorY;
+                            hasSelection = true;
+                        }
+                    }
                 }
                 break;
         }
@@ -294,6 +762,9 @@ public:
 
     void redo() {
         if (redoStack.empty()) return;  // Nothing to redo
+        
+        // Cancel any selection
+        cancelSelection();
     
         // Pop the latest action from the redo stack
         Action action = redoStack.back();
@@ -302,27 +773,65 @@ public:
         // Apply the action again
         switch (action.type) {
             case Action::InsertChar:
-                insertChar(action.text[0]);
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size() && 
+                    action.cursorX >= 0 && action.cursorX <= (int)lines[action.cursorY].size()) {
+                    lines[action.cursorY].insert(action.cursorX, action.text);
+                    cursorX = action.cursorX + 1;
+                    cursorY = action.cursorY;
+                }
                 break;
             case Action::DeleteChar:
-                deleteChar();
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size() && 
+                    action.cursorX > 0 && action.cursorX <= (int)lines[action.cursorY].size()) {
+                    lines[action.cursorY].erase(action.cursorX - 1, 1);
+                    cursorX = action.cursorX - 1;
+                    cursorY = action.cursorY;
+                }
                 break;
             case Action::InsertLine:
-                // Insert a new line at cursor position
-                if (cursorY < (int)lines.size()) {
-                    lines.insert(lines.begin() + cursorY, action.text);
+                if (action.cursorY >= 0 && action.cursorY < (int)lines.size()) {
+                    std::string currentLine = lines[action.cursorY];
+                    std::string firstPart = currentLine.substr(0, action.cursorX);
+                    std::string lastPart = currentLine.substr(action.cursorX);
+                    
+                    lines[action.cursorY] = firstPart;
+                    lines.insert(lines.begin() + action.cursorY + 1, action.text + lastPart);
+                    
+                    cursorX = 0;
+                    cursorY = action.cursorY + 1;
                 }
                 break;
             case Action::DeleteLine:
-                // Delete the line at cursor position
-                if (cursorY < (int)lines.size()) {
-                    lines.erase(lines.begin() + cursorY);
+                if (action.cursorY > 0 && action.cursorY < (int)lines.size()) {
+                    lines[action.cursorY - 1] += lines[action.cursorY];
+                    lines.erase(lines.begin() + action.cursorY);
+                    
+                    cursorX = action.cursorX;
+                    cursorY = action.cursorY - 1;
+                }
+                break;
+            case Action::InsertString:
+                // For simplicity, just move cursor
+                cursorX = action.cursorX;
+                cursorY = action.cursorY;
+                break;
+            case Action::DeleteSelection:
+                if (action.selStartY >= 0 && action.selStartY < (int)lines.size()) {
+                    // Set selection
+                    selectionStartX = action.selStartX;
+                    selectionStartY = action.selStartY;
+                    selectionEndX = action.selEndX;
+                    selectionEndY = action.selEndY;
+                    hasSelection = true;
+                    
+                    // Delete selection
+                    deleteSelection();
                 }
                 break;
         }
     
         undoStack.push_back(action);  // Push the redone action to the undo stack
-    }       
+    }
 
     void processInput() {
         scroll();
@@ -331,15 +840,40 @@ public:
         while (true) {
             int c = _getch();
             
+            // Check for shift key state
+            bool shiftPressed = GetKeyState(VK_SHIFT) < 0;
+            bool ctrlPressed = GetKeyState(VK_CONTROL) < 0;
+            
             // Check for Ctrl + Z (undo)
             if (c == 26) {  // ASCII value for Ctrl+Z
-                std::cout << "Undoing last action...\n";
                 undo();
             }
             // Check for Ctrl + Y (redo)
             else if (c == 25) {  // ASCII value for Ctrl+Y
-                std::cout << "Redoing last action...\n";
                 redo();
+            }
+            // Check for Ctrl + X (cut)
+            else if (c == 24) {  // ASCII value for Ctrl+X
+                cutSelection();
+            }
+            // Check for Ctrl + C (copy)
+            else if (c == 3) {  // ASCII value for Ctrl+C
+                copySelection();
+            }
+            // Check for Ctrl + V (paste)
+            else if (c == 22) {  // ASCII value for Ctrl+V
+                pasteFromClipboard();
+            }
+            // Check for Ctrl + A (select all)
+            else if (c == 1) {  // ASCII value for Ctrl+A
+                // Select all text
+                hasSelection = true;
+                selectionStartX = 0;
+                selectionStartY = 0;
+                selectionEndX = lines.empty() ? 0 : lines.back().size();
+                selectionEndY = lines.size() - 1;
+                cursorX = selectionEndX;
+                cursorY = selectionEndY;
             }
             // Handle special key input (like arrow keys, etc.)
             else if (c == 224) {  // Special key (like arrow keys, etc.)
@@ -349,10 +883,14 @@ public:
                     continue;  // Ignore control characters
                 }
                 
-                moveCursorKey(c2);
+                moveCursorKey(c2, shiftPressed);
             }
-            else if (c == 27) {  // Escape
-                break;
+            else if (c == 27) {  // Escape - cancel selection and/or exit
+                if (hasSelection) {
+                    cancelSelection();
+                } else {
+                    break;  // Exit if no selection
+                }
             } else if (c == '\t') {  // Tab
                 insertTab();
             } else if (c == '\r') {  // Enter
@@ -366,10 +904,14 @@ public:
                 std::string fname;
                 std::getline(std::cin, fname);
                 openFile(fname);
-            } else if (c == 'q') {  // Quit
+            } else if (c == 46 && ctrlPressed) {  // Ctrl+. (Delete selection)
+                if (hasSelection) {
+                    deleteSelection();
+                }
+            } else if (c == 'q' && ctrlPressed) {  // Ctrl+Q (Quit)
                 break;
-            } else {
-                // Handle normal characters and insert them
+            } else if (c >= 32 && c <= 126) {  // Printable characters
+                // Insert the character
                 insertChar((char)c);
             }
             
@@ -377,11 +919,20 @@ public:
             scroll();
             drawEditor();
         }
-    }    
-
+    }
 };
 
 int main(int argc, char* argv[]) {
+    // Set console code page to UTF-8
+    SetConsoleOutputCP(65001);
+    
+    // Enable VT100 terminal sequences
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+    
     Editor editor;
     if (argc >= 2)
         editor.openFile(argv[1]);
