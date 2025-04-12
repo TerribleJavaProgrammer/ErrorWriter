@@ -1385,6 +1385,7 @@ class Editor {
                 }
                 // Handle Ctrl+Q (quit the editor)
                 else if (c == 17) {  // Ctrl+Q
+                    system("cls");
                     break;  // Exit the loop (quit)
                 }
                 // Handle Ctrl+G (go to a specific line)
