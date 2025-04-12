@@ -22,6 +22,6 @@ If you're a windows user who loves the terminal, and would like a text editor fo
 - CTRL + O: Open file
   - Prev to go to prev file
   - Config to navigate to config file
-- CTROL + S: Save file
+- CTRL + S: Save file
 
 ### Good luck!
