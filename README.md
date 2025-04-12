@@ -1,7 +1,8 @@
-# ErroWriter
+# Nite
+Nimble Interactive Text Editor
 
-### Absolutely terrible CLI based text editor.
-Highly recommend you DON'T use this.
+### Mildly interesting CLI based text editor.
+You can use it if you want. The question is, *why* would you use it?
 
-### For those of you who still will...
-Good luck.
+### KEYBINDS
+Check processInput() function.
