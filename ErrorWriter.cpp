@@ -960,6 +960,8 @@ public:
                 int line = std::stoi(lineStr) - 1;  // Convert to zero-based index
                 std::cout << line << std::endl;
                 scrollToLine(line);
+            } else if (c == 18) { // ctrl + r; handles window resizing
+                getWindowSize(screenRows, screenCols);
             }else if (c >= 32 && c <= 126) {  // Printable characters
                 // Insert the character
                 insertChar((char)c);
