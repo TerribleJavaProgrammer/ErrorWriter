@@ -6,7 +6,7 @@
 #include <conio.h>
 #include <fstream>
 #include <sstream>
-#include <cstdlib> // For clipboard operations
+#include <cstdlib>
 
 struct Action {
     enum Type {
