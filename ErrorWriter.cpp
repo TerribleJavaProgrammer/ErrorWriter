@@ -8,17 +8,6 @@
 #include <sstream>
 #include <cstdlib>
 
-// Quick helper function that returns the digits of a number; used for aligning things.
-int countDigits(int n) {
-    if (n == 0) return 1;
-    int digits = 0;
-    while (n > 0) {
-        n /= 10;
-        digits++;
-    }
-    return digits;
-}
-
 struct Action {
     enum Type {
         InsertChar,
@@ -65,6 +54,14 @@ public:
     int lastSearchLine = -1;
     bool searchActive = false;
 
+    // SB helper variables
+    bool waitingForInput = false;
+    std::string statusPrompt = "";
+    std::string statusInput = "";
+    bool processingInput = false;
+    enum InputType { NONE, OPEN_FILE, GOTO_LINE };
+    InputType currentInputType = NONE;
+
     Editor() {
         getWindowSize(screenRows, screenCols);
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -85,22 +82,71 @@ public:
     }
 
     void drawStatusBar(std::ostringstream &sb) {
-        std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);
-        if (dirty) status += " (modified)";
-        if (hasSelection) status += " (text selected)";
-        
-        // Add cursor position (X, Y)
-        status += " | Row: " + std::to_string(cursorY + 1) + " | Col: " + std::to_string(cursorX + 1);  // +1 to make it 1-based
-        
-        // Add search information if active
-        if (searchActive) {
-            status += " | Searching: \"" + searchQuery + "\"";
+        if (waitingForInput) {
+            // Show prompt and current input
+            std::string status = statusPrompt + statusInput;
+            if ((int)status.size() < screenCols)
+                sb << status << std::string(screenCols - status.size(), ' ');
+            else
+                sb << status.substr(0, screenCols);
+        } else {
+            // Normal status bar
+            std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);
+            if (dirty) status += " (modified)";
+            if (hasSelection) status += " (text selected)";
+            
+            // Add cursor position (X, Y)
+            status += " | Row: " + std::to_string(cursorY + 1) + " | Col: " + std::to_string(cursorX + 1);  // +1 to make it 1-based
+            
+            // Add search information if active
+            if (searchActive) {
+                status += " | Searching: \"" + searchQuery + "\"";
+            }
+            
+            if ((int)status.size() < screenCols)
+                sb << status << std::string(screenCols - status.size(), ' ');
+            else
+                sb << status.substr(0, screenCols);
+        }
+    }
+    
+    // Add a function to start input on the status bar
+    void startStatusInput(const std::string &prompt, InputType type) {
+        waitingForInput = true;
+        statusPrompt = prompt;
+        statusInput = "";
+        currentInputType = type;
+        processingInput = true;
+    }
+    
+    // Add a function to process status bar input
+    void processStatusInput() {
+        switch (currentInputType) {
+            case OPEN_FILE:
+                if (!statusInput.empty()) {
+                    openFile(statusInput);
+                }
+                break;
+            case GOTO_LINE:
+                if (!statusInput.empty()) {
+                    try {
+                        int line = std::stoi(statusInput) - 1;  // Convert to zero-based index
+                        scrollToLine(line);
+                    } catch (const std::exception& e) {
+                        // Handle invalid input
+                    }
+                }
+                break;
+            default:
+                break;
         }
         
-        if ((int)status.size() < screenCols)
-            sb << status << std::string(screenCols - status.size(), ' ');
-        else
-            sb << status.substr(0, screenCols);
+        // Reset status bar state
+        waitingForInput = false;
+        statusPrompt = "";
+        statusInput = "";
+        currentInputType = NONE;
+        processingInput = false;
     }
 
     // Function to determine if a position is within selection
@@ -1125,6 +1171,29 @@ public:
         while (true) {
             int c = _getch();
             
+            // If we're waiting for input on the status bar
+            if (waitingForInput) {
+                if (c == 27) {  // Escape - cancel input
+                    waitingForInput = false;
+                    statusPrompt = "";
+                    statusInput = "";
+                    currentInputType = NONE;
+                    processingInput = false;
+                } else if (c == '\r') {  // Enter - submit input
+                    processStatusInput();
+                } else if (c == 8) {  // Backspace
+                    if (!statusInput.empty()) {
+                        statusInput.pop_back();
+                    }
+                } else if (c >= 32 && c <= 126) {  // Printable characters
+                    statusInput += (char)c;
+                }
+                
+                scroll();
+                drawEditor();
+                continue;
+            }
+
             // Check for shift key state
             bool shiftPressed = GetKeyState(VK_SHIFT) < 0;
             bool ctrlPressed = GetKeyState(VK_CONTROL) < 0;
@@ -1199,10 +1268,7 @@ public:
             } else if (c == 19) {  // Ctrl+S (Save file)
                 saveFile();
             } else if (c == 15) {  // Ctrl+O (Open file)
-                std::cout << "Enter filename to open: ";
-                std::string fname;
-                std::getline(std::cin, fname);
-                openFile(fname);
+                startStatusInput("Enter filename to open: ", OPEN_FILE);
             } else if (c == 46 && ctrlPressed) {  // Ctrl+. (Delete selection)
                 if (hasSelection) {
                     deleteSelection();
@@ -1210,12 +1276,7 @@ public:
             } else if (c == 17) {  // Ctrl+Q (Quit)
                 break;
             } else if (c == 7) {
-                std::cout << "Enter line number to scroll to: ";
-                std::string lineStr;
-                std::getline(std::cin, lineStr);
-                int line = std::stoi(lineStr) - 1;  // Convert to zero-based index
-                std::cout << line << std::endl;
-                scrollToLine(line);
+                startStatusInput("Enter line number to scroll to: ", GOTO_LINE);
             } else if (c == 18) { // ctrl + r; handles window resizing
                 getWindowSize(screenRows, screenCols);
             }else if (c >= 32 && c <= 126) {  // Printable characters
