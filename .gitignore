@@ -1,4 +1,6 @@
 # ignore .exe files
-.exe
+*.exe
 # ignore .o files
-.o
+*.o
+# ignore the gitignore file itself
+.gitignore

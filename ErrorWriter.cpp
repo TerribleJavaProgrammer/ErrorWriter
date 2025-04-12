@@ -38,7 +38,7 @@ public:
     }
 
     void drawStatusBar(std::ostringstream &sb) {
-        std::string status = "[TinyEditor] " + (filename.empty() ? "[No Name]" : filename);
+        std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);
         if (dirty) status += " (modified)";
         if ((int)status.size() < screenCols)
             sb << status << std::string(screenCols - status.size(), ' ');
