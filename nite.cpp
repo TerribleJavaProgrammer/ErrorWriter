@@ -13,147 +13,145 @@
 #include <cstdlib>      // Includes functions like std::exit() and random number generation.
 #include <unordered_map> // Includes unordered_map for hash table-like data structures.
 
-// Contains C and C++ keywords
-// Contains C and C++ keywords and operators
-std::unordered_map<std::string, std::string> cxxKeywords = {
-    // **Built-in Types**
-    {"bool", "Type"}, {"char", "Type"}, {"char8_t", "Type"}, {"char16_t", "Type"},
-    {"char32_t", "Type"}, {"double", "Type"}, {"float", "Type"}, {"int", "Type"},
-    {"long", "Type"}, {"short", "Type"}, {"signed", "Type"}, {"unsigned", "Type"},
-    {"void", "Type"}, {"wchar_t", "Type"},
+// === Color Lookup ===
+std::unordered_map<std::string, WORD> colorMap = {
+    {"black", 0},
+    {"dark_blue", FOREGROUND_BLUE},
+    {"dark_green", FOREGROUND_GREEN},
+    {"dark_cyan", FOREGROUND_GREEN | FOREGROUND_BLUE},
+    {"dark_red", FOREGROUND_RED},
+    {"dark_magenta", FOREGROUND_RED | FOREGROUND_BLUE},
+    {"dark_yellow", FOREGROUND_RED | FOREGROUND_GREEN},
+    {"gray", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE},
+    {"light_gray", FOREGROUND_INTENSITY},
+    {"blue", FOREGROUND_BLUE | FOREGROUND_INTENSITY},
+    {"green", FOREGROUND_GREEN | FOREGROUND_INTENSITY},
+    {"cyan", FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY},
+    {"red", FOREGROUND_RED | FOREGROUND_INTENSITY},
+    {"magenta", FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY},
+    {"yellow", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY},
+    {"white", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY},
 
-    // **Type Modifiers / Qualifiers**
-    {"const", "Type Modifier"}, {"constexpr", "Type Modifier"}, {"consteval", "Type Modifier"},
-    {"constinit", "Type Modifier"}, {"inline", "Type Modifier"}, {"mutable", "Type Modifier"},
-    {"volatile", "Type Modifier"}, {"static", "Type Modifier"}, {"register", "Type Modifier"},
-    {"thread_local", "Type Modifier"},
-
-    // **Type Casts**
-    {"const_cast", "Cast"}, {"dynamic_cast", "Cast"}, {"reinterpret_cast", "Cast"},
-    {"static_cast", "Cast"},
-
-    // **Control Flow**
-    {"break", "Control Flow"}, {"case", "Control Flow"}, {"continue", "Control Flow"},
-    {"default", "Control Flow"}, {"do", "Control Flow"}, {"else", "Control Flow"},
-    {"for", "Control Flow"}, {"goto", "Control Flow"}, {"if", "Control Flow"},
-    {"return", "Control Flow"}, {"switch", "Control Flow"}, {"while", "Control Flow"},
-
-    // **Logical / Bitwise Operators (Alternative Tokens and Keywords)**
-    {"and", "Operator"}, {"and_eq", "Operator"}, {"bitand", "Operator"}, {"bitor", "Operator"},
-    {"compl", "Operator"}, {"not", "Operator"}, {"not_eq", "Operator"}, {"or", "Operator"},
-    {"or_eq", "Operator"}, {"xor", "Operator"}, {"xor_eq", "Operator"},
-
-    // **Symbolic Operators**
-    {"+", "Operator"}, {"-", "Operator"}, {"*", "Operator"}, {"/", "Operator"}, {"%", "Operator"},
-    {"++", "Operator"}, {"--", "Operator"}, // Arithmetic
-    {"==", "Operator"}, {"!=", "Operator"}, {"<", "Operator"}, {">", "Operator"},
-    {"<=", "Operator"}, {">=", "Operator"}, // Comparison
-    {"!", "Operator"}, {"&&", "Operator"}, {"||", "Operator"}, // Logical
-    {"&", "Operator"}, {"|", "Operator"}, {"^", "Operator"}, {"~", "Operator"}, // Bitwise
-    {"<<", "Operator"}, {">>", "Operator"}, // Bit shift
-    {"=", "Operator"}, {"+=", "Operator"}, {"-=", "Operator"}, {"*=", "Operator"}, {"/=", "Operator"},
-    {"%=", "Operator"}, {"&=", "Operator"}, {"|=", "Operator"}, {"^=", "Operator"},
-    {"<<=", "Operator"}, {">>=", "Operator"}, // Assignment
-    {"?", "Operator"}, {":", "Operator"}, // Ternary
-    {".", "Operator"}, {"->", "Operator"}, {"->*", "Operator"}, {".*", "Operator"}, // Member access
-    {",", "Operator"}, // Comma
-
-    // **Memory Management**
-    {"new", "Memory Management"}, {"delete", "Memory Management"},
-    {"sizeof", "Memory Management"}, {"alignas", "Memory Management"},
-    {"alignof", "Memory Management"},
-
-    // **Exception Handling**
-    {"try", "Exception Handling"}, {"catch", "Exception Handling"}, {"throw", "Exception Handling"},
-
-    // **Object-Oriented Keywords**
-    {"struct", "Object-Oriented"}, {"enum", "Object-Oriented"}, {"class", "Object-Oriented"},
-    {"friend", "Object-Oriented"}, {"private", "Object-Oriented"}, {"protected", "Object-Oriented"},
-    {"public", "Object-Oriented"}, {"this", "Object-Oriented"}, {"virtual", "Object-Oriented"},
-
-    // **Templates & Generics**
-    {"template", "Template"}, {"typename", "Template"}, {"using", "Template"},
-
-    // **Namespace & Modules**
-    {"namespace", "Namespace"}, {"export", "Namespace"},
-
-    // **Cast/Type-Introspection**
-    {"decltype", "Cast/Introspection"}, {"typeid", "Cast/Introspection"},
-
-    // **Operator Overloading**
-    {"operator", "Operator Overloading"},
-
-    // **Boolean Literals**
-    {"true", "Boolean Literal"}, {"false", "Boolean Literal"},
-
-    // **Null / Undefined**
-    {"nullptr", "Null/Undefined"},
-
-    // **Preprocessor**
-    {"define", "Preprocessor"}, {"include", "Preprocessor"}, {"undef", "Preprocessor"},
-    {"ifdef", "Preprocessor"}, {"ifndef", "Preprocessor"}, {"if", "Preprocessor"},
-    {"else", "Preprocessor"}, {"elif", "Preprocessor"}, {"endif", "Preprocessor"},
-    {"pragma", "Preprocessor"},
-
-    // **Coroutines (C++20)**
-    {"co_await", "Coroutines"}, {"co_return", "Coroutines"}, {"co_yield", "Coroutines"},
-
-    // **Concepts (C++20)**
-    {"concept", "Concepts"}, {"requires", "Concepts"},
-
-    // **Miscellaneous**
-    {"asm", "Miscellaneous"}, {"explicit", "Miscellaneous"}, {"extern", "Miscellaneous"},
-    {"noexcept", "Miscellaneous"}, {"static_assert", "Miscellaneous"}
+    {"bg_black", 0},
+    {"bg_dark_blue", BACKGROUND_BLUE},
+    {"bg_dark_green", BACKGROUND_GREEN},
+    {"bg_dark_cyan", BACKGROUND_GREEN | BACKGROUND_BLUE},
+    {"bg_dark_red", BACKGROUND_RED},
+    {"bg_dark_magenta", BACKGROUND_RED | BACKGROUND_BLUE},
+    {"bg_dark_yellow", BACKGROUND_RED | BACKGROUND_GREEN},
+    {"bg_gray", BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE},
+    {"bg_blue", BACKGROUND_BLUE | BACKGROUND_INTENSITY},
+    {"bg_green", BACKGROUND_GREEN | BACKGROUND_INTENSITY},
+    {"bg_cyan", BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY},
+    {"bg_red", BACKGROUND_RED | BACKGROUND_INTENSITY},
+    {"bg_magenta", BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY},
+    {"bg_yellow", BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY},
+    {"bg_white", BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY},
+    {"bg_light_gray", BACKGROUND_INTENSITY}
 };
 
-// Base Colors
-const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // White
+// === Editor Color Variables ===
+WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+WORD TYPE_COLOR = FOREGROUND_GREEN;
+WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+WORD CAST_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE;
+WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;
+WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;
+WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_INTENSITY;
+WORD OOP_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+WORD TEMPLATE_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+WORD NAMESPACE_COLOR = FOREGROUND_BLUE;
+WORD COROUTINE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY;
+WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+WORD NULL_COLOR = FOREGROUND_RED;
+WORD PREPROCESSOR_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;
+WORD MISC_COLOR = FOREGROUND_BLUE | FOREGROUND_RED;
+WORD HIGHLIGHT_COLOR = BACKGROUND_BLUE | BACKGROUND_RED | BACKGROUND_INTENSITY;
 
-// Types and Modifiers
-const WORD TYPE_COLOR = FOREGROUND_GREEN | FOREGROUND_RED;                                       // Base green
-const WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;      // Bright green
+// Some other cool values
+bool syntaxHighlighting = false;
+int tabSize = 4;
 
-// Casting and Introspection
-const WORD CAST_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE;                    // Cyan-like (type-related)
+// === Parser ===
+void loadColorConfig(const std::string& filepath) {
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "Could not open .niteconfig file.\n";
+        return;
+    }
 
-// Control Flow
-const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;             // Yellow
+    std::unordered_map<std::string, WORD*> colorTargets = {
+        {"default", &DEFAULT_COLOR},
+        {"type", &TYPE_COLOR},
+        {"type_modifier", &TYPE_MODIFIER_COLOR},
+        {"cast", &CAST_COLOR},
+        {"control_flow", &CONTROL_FLOW_COLOR},
+        {"operator", &OPERATOR_COLOR},
+        {"memory_management", &MEMORY_MANAGEMENT_COLOR},
+        {"exception_handling", &EXCEPTION_HANDLING_COLOR},
+        {"oop", &OOP_COLOR},
+        {"template", &TEMPLATE_COLOR},
+        {"namespace", &NAMESPACE_COLOR},
+        {"coroutine", &COROUTINE_COLOR},
+        {"concept", &CONCEPT_COLOR},
+        {"boolean_literal", &BOOLEAN_LITERAL_COLOR},
+        {"null", &NULL_COLOR},
+        {"preprocessor", &PREPROCESSOR_COLOR},
+        {"misc", &MISC_COLOR},
+        {"highlight", &HIGHLIGHT_COLOR}
+    };
 
-// Operators (both symbolic and keyword-style)
-const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;                  // Magenta
+    std::string line;
+    while (std::getline(file, line)) {
+        // Remove comments and whitespace
+        size_t comment = line.find('#');
+        if (comment != std::string::npos)
+            line = line.substr(0, comment);
+        std::istringstream iss(line);
+        std::string key, eq, value;
+        if (!(iss >> key >> eq >> value) || eq != "=")
+            continue;
 
-// Memory Management
-const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;   // Bright blue
+        // Normalize the key and value
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+        std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
-// Exception Handling
-const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_INTENSITY;   // Bright red
+        // Process color mappings
+        if (colorMap.count(value) && colorTargets.count(key)) {
+            *colorTargets[key] = colorMap[value];
+        }
 
-// Object-Oriented Keywords (classes, access, etc.)
-const WORD OOP_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;                 // Bright blue
+        // Process 'syntaxhighlighting' (boolean)
+        else if (key == "syntaxhighlighting") {
+            if (value == "true") {
+                syntaxHighlighting = true;
+            } else if (value == "false") {
+                syntaxHighlighting = false;
+            } else {
+                std::cerr << "Invalid value for syntaxhighlighting in config.\n";
+            }
+        }
 
-// Templates and Generics
-const WORD TEMPLATE_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // Bright cyan
-
-// Namespace & Modules
-const WORD NAMESPACE_COLOR = FOREGROUND_BLUE;                                  // Blue (organization)
-
-// Coroutines (C++20)
-const WORD COROUTINE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright magenta
-
-// Concepts (C++20)
-const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright yellow
-
-// Boolean Literals
-const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // Bright green
-
-// Null / Undefined
-const WORD NULL_COLOR = FOREGROUND_RED;                                        // Red (absence)
-
-// Preprocessor
-const WORD PREPROCESSOR_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;            // Cyan
-
-// Miscellaneous
-const WORD MISC_COLOR = FOREGROUND_BLUE | FOREGROUND_RED;                      // Soft magenta
+        // Process 'tabSize' (integer)
+        else if (key == "tabsize") {
+            try {
+                tabSize = std::stoi(value);  // Convert to integer
+                if (tabSize < 1 || tabSize > 8) {
+                    std::cerr << "Invalid tabSize value. Must be between 1 and 8.\n";
+                    tabSize = 4;  // Default value
+                }
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "Invalid tabSize value: " << value << "\n";
+                tabSize = 4;  // Default value
+            } catch (const std::out_of_range& e) {
+                std::cerr << "tabSize value out of range: " << value << "\n";
+                tabSize = 4;  // Default value
+            }
+        }
+    }
+}
 
 // Struct to represent different types of actions that can be performed in an editor-like environment
 struct Action {
@@ -179,9 +177,100 @@ struct Action {
 
 std::vector<Action> undoStack;  // A stack (vector) to store actions for undo functionality, allowing you to revert the last action performed.
 std::vector<Action> redoStack;  // A stack (vector) to store actions for redo functionality, allowing you to reapply an undone action.
+std::vector<std::string> fileStack; // A stack (vector) to store file names for file navigation, allowing you to go back to previously opened files.
 
 class Nite {
     public:
+        std::unordered_map<std::string, std::string> cxxKeywords = {
+            // **Built-in Types**
+            {"bool", "Type"}, {"char", "Type"}, {"char8_t", "Type"}, {"char16_t", "Type"},
+            {"char32_t", "Type"}, {"double", "Type"}, {"float", "Type"}, {"int", "Type"},
+            {"long", "Type"}, {"short", "Type"}, {"signed", "Type"}, {"unsigned", "Type"},
+            {"void", "Type"}, {"wchar_t", "Type"},
+        
+            // **Type Modifiers / Qualifiers**
+            {"const", "Type Modifier"}, {"constexpr", "Type Modifier"}, {"consteval", "Type Modifier"},
+            {"constinit", "Type Modifier"}, {"inline", "Type Modifier"}, {"mutable", "Type Modifier"},
+            {"volatile", "Type Modifier"}, {"static", "Type Modifier"}, {"register", "Type Modifier"},
+            {"thread_local", "Type Modifier"},
+        
+            // **Type Casts**
+            {"const_cast", "Cast"}, {"dynamic_cast", "Cast"}, {"reinterpret_cast", "Cast"},
+            {"static_cast", "Cast"},
+        
+            // **Control Flow**
+            {"break", "Control Flow"}, {"case", "Control Flow"}, {"continue", "Control Flow"},
+            {"default", "Control Flow"}, {"do", "Control Flow"}, {"else", "Control Flow"},
+            {"for", "Control Flow"}, {"goto", "Control Flow"}, {"if", "Control Flow"},
+            {"return", "Control Flow"}, {"switch", "Control Flow"}, {"while", "Control Flow"},
+        
+            // **Logical / Bitwise Operators (Alternative Tokens and Keywords)**
+            {"and", "Operator"}, {"and_eq", "Operator"}, {"bitand", "Operator"}, {"bitor", "Operator"},
+            {"compl", "Operator"}, {"not", "Operator"}, {"not_eq", "Operator"}, {"or", "Operator"},
+            {"or_eq", "Operator"}, {"xor", "Operator"}, {"xor_eq", "Operator"},
+        
+            // **Symbolic Operators**
+            {"+", "Operator"}, {"-", "Operator"}, {"*", "Operator"}, {"/", "Operator"}, {"%", "Operator"},
+            {"++", "Operator"}, {"--", "Operator"}, // Arithmetic
+            {"==", "Operator"}, {"!=", "Operator"}, {"<", "Operator"}, {">", "Operator"},
+            {"<=", "Operator"}, {">=", "Operator"}, // Comparison
+            {"!", "Operator"}, {"&&", "Operator"}, {"||", "Operator"}, // Logical
+            {"&", "Operator"}, {"|", "Operator"}, {"^", "Operator"}, {"~", "Operator"}, // Bitwise
+            {"<<", "Operator"}, {">>", "Operator"}, // Bit shift
+            {"=", "Operator"}, {"+=", "Operator"}, {"-=", "Operator"}, {"*=", "Operator"}, {"/=", "Operator"},
+            {"%=", "Operator"}, {"&=", "Operator"}, {"|=", "Operator"}, {"^=", "Operator"},
+            {"<<=", "Operator"}, {">>=", "Operator"}, // Assignment
+            {"?", "Operator"}, {":", "Operator"}, // Ternary
+            {".", "Operator"}, {"->", "Operator"}, {"->*", "Operator"}, {".*", "Operator"}, // Member access
+            {",", "Operator"}, // Comma
+        
+            // **Memory Management**
+            {"new", "Memory Management"}, {"delete", "Memory Management"},
+            {"sizeof", "Memory Management"}, {"alignas", "Memory Management"},
+            {"alignof", "Memory Management"},
+        
+            // **Exception Handling**
+            {"try", "Exception Handling"}, {"catch", "Exception Handling"}, {"throw", "Exception Handling"},
+        
+            // **Object-Oriented Keywords**
+            {"struct", "Object-Oriented"}, {"enum", "Object-Oriented"}, {"class", "Object-Oriented"},
+            {"friend", "Object-Oriented"}, {"private", "Object-Oriented"}, {"protected", "Object-Oriented"},
+            {"public", "Object-Oriented"}, {"this", "Object-Oriented"}, {"virtual", "Object-Oriented"},
+        
+            // **Templates & Generics**
+            {"template", "Template"}, {"typename", "Template"}, {"using", "Template"},
+        
+            // **Namespace & Modules**
+            {"namespace", "Namespace"}, {"export", "Namespace"},
+        
+            // **Cast/Type-Introspection**
+            {"decltype", "Cast/Introspection"}, {"typeid", "Cast/Introspection"},
+        
+            // **Operator Overloading**
+            {"operator", "Operator Overloading"},
+        
+            // **Boolean Literals**
+            {"true", "Boolean Literal"}, {"false", "Boolean Literal"},
+        
+            // **Null / Undefined**
+            {"nullptr", "Null/Undefined"},
+        
+            // **Preprocessor**
+            {"define", "Preprocessor"}, {"include", "Preprocessor"}, {"undef", "Preprocessor"},
+            {"ifdef", "Preprocessor"}, {"ifndef", "Preprocessor"}, {"if", "Preprocessor"},
+            {"else", "Preprocessor"}, {"elif", "Preprocessor"}, {"endif", "Preprocessor"},
+            {"pragma", "Preprocessor"},
+        
+            // **Coroutines (C++20)**
+            {"co_await", "Coroutines"}, {"co_return", "Coroutines"}, {"co_yield", "Coroutines"},
+        
+            // **Concepts (C++20)**
+            {"concept", "Concepts"}, {"requires", "Concepts"},
+        
+            // **Miscellaneous**
+            {"asm", "Miscellaneous"}, {"explicit", "Miscellaneous"}, {"extern", "Miscellaneous"},
+            {"noexcept", "Miscellaneous"}, {"static_assert", "Miscellaneous"}
+        };
         int screenRows, screenCols;  // Dimensions of the editor's screen (number of rows and columns visible at a time)
         int cursorX = 0, cursorY = 0;  // Current cursor position (X for horizontal, Y for vertical)
         int rowOffset = 0, colOffset = 0;  // Offsets for scrolling the screen (how much of the file is scrolled)
@@ -189,7 +278,6 @@ class Nite {
         std::string filename;  // The name of the file currently being edited
         std::vector<std::string> lines;  // A vector to store each line of the text file as a string
         bool skipHorizontalScroll = false;  // Flag to control horizontal scrolling behavior
-        const int tabSize = 4;  // The number of spaces that should be used for a tab character
         
         // Selection variables
         bool hasSelection = false;  // Flag to indicate if there is a text selection
@@ -212,10 +300,9 @@ class Nite {
         enum InputType { NONE, OPEN_FILE, GOTO_LINE };  // Enum for different types of user input (None, opening a file, or going to a specific line)
         InputType currentInputType = NONE;  // The current type of input being processed (initialized to NONE)
 
-        // Syntax higlighting flag
-        bool syntaxHighlighting = false;  // Flag to enable or disable syntax highlighting
-
         Nite() {
+            loadColorConfig(getNiteConfigPath());  // Load color configuration from the .niteconfig file located in the executable directory.
+
             getWindowSize(screenRows, screenCols);  // Calls the function getWindowSize to initialize screenRows and screenCols with the current window size.
             
             HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);  // Gets the handle for the standard output (console window) to manipulate its properties.
@@ -223,6 +310,22 @@ class Nite {
             COORD newSize = { static_cast<SHORT>(screenCols), static_cast<SHORT>(screenRows) };  // Creates a COORD structure to define the new size of the console window, using the previously obtained screen dimensions.
             
             SetConsoleScreenBufferSize(hOut, newSize);  // Sets the screen buffer size of the console window to match the specified dimensions (screenCols, screenRows).
+        }
+
+        std::string getExecutableDir() {
+            char path[MAX_PATH];
+            GetModuleFileNameA(NULL, path, MAX_PATH);
+        
+            std::string fullPath(path);
+            size_t lastSlash = fullPath.find_last_of("\\/");
+            if (lastSlash != std::string::npos) {
+                return fullPath.substr(0, lastSlash + 1); // include the slash
+            }
+            return ""; // fallback
+        }
+        
+        std::string getNiteConfigPath() {
+            return getExecutableDir() + ".niteconfig";
         }
 
         void getWindowSize(int &rows, int &cols) {
@@ -443,7 +546,7 @@ class Nite {
                     int bufferPos = y * screenCols + (x - colOffset);
 
                     if (!syntaxHighlighting) {
-                        attributes[bufferPos + gutterWidth] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                        attributes[bufferPos + gutterWidth] = DEFAULT_COLOR;  // Default color for normal text
                         ++x;
                         continue;
                     }
@@ -593,8 +696,8 @@ class Nite {
         
                                 // Set selection highlight (blue background with normal text)
                                 if (isSelected) {
-                                    attributes[bufferPos + gutterWidth] = BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
-                                                                            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                                    attributes[bufferPos + gutterWidth] = HIGHLIGHT_COLOR | 
+                                                                            DEFAULT_COLOR;
                                 }
                             }
                         }
@@ -1294,29 +1397,54 @@ class Nite {
         }
         
         void openFile(const std::string &fname) {
-            filename = fname;  // Store the file name for future reference
-            std::ifstream file(fname);  // Open the file for reading
-            std::string line;
-            
-            lines.clear();  // Clear any previously loaded lines
+            // 1) Determine the actual path we want to open
+            std::string targetPath;
+            if (fname == "config") {
+                targetPath = getNiteConfigPath();
+            } else if (fname == "prev") {
+                // We’ll handle popping below
+                if (fileStack.size() < 2) {
+                    std::cerr << "No previous file to open.\n";
+                    return;
+                }
+                // Pop off the current file (whatever it is), then open the new top
+                fileStack.pop_back();
+                targetPath = fileStack.back();
+            } else {
+                targetPath = fname;
+            }
         
-            // Read the file line by line and add each line to the `lines` vector
+            // 2) If this is a “normal” open (not prev), push it onto the stack
+            if (fname != "prev") {
+                // Avoid duplicate pushes if you open the same path twice in a row
+                if (fileStack.empty() || fileStack.back() != targetPath) {
+                    fileStack.push_back(targetPath);
+                }
+            }
+        
+            // 3) Update your “current filename” state
+            filename = targetPath;
+        
+            // 4) Open the file once, using the resolved targetPath
+            std::ifstream file(targetPath);
+            if (!file.is_open()) {
+                std::cerr << "Error opening file: " << targetPath << "\n";
+                return;
+            }
+        
+            // 5) Read into your lines buffer
+            lines.clear();
+            std::string line;
             while (std::getline(file, line)) {
                 lines.push_back(line);
             }
+            if (lines.empty()) lines.push_back("");
         
-            // If the file is empty, add an empty line to the document
-            if (lines.empty()) {
-                lines.push_back("");
-            }
-        
-            dirty = false;  // Set the dirty flag to false (since the file has been successfully loaded)
-        
-            // Reset selection and cursor
-            hasSelection = false;  // No selection after opening a file
-            cursorX = 0;  // Move cursor to the beginning of the first line
-            cursorY = 0;  // Move cursor to the first line
-        }        
+            // 6) Reset editor state
+            dirty = false;
+            hasSelection = false;
+            cursorX = cursorY = 0;
+        }
 
         void saveFile() {
             if (filename.empty()) return;  // If the filename is empty, do nothing (no file to save)
@@ -1637,8 +1765,8 @@ class Nite {
                 else if (c == 8 && ctrlPressed) {  // Ctrl+H
                     replaceAll();
                 }
-                // Handle ctrl + n key for "Find Next"
-                else if (c == 14) {  // ctrl + n
+                // Handle Ctrl+N key for "Find Next"
+                else if (c == 14) {  // ASCII value for Ctrl+N
                     findNext();
                 }
                 // Handle Escape key (cancel selection or exit)
@@ -1686,9 +1814,10 @@ class Nite {
                 else if (c == 7) {
                     startStatusInput("Enter line number to scroll to: ", GOTO_LINE);
                 }
-                // Handle Ctrl+R (resize the window)
-                else if (c == 18) { // ctrl + r (resize)
+                // Handle Ctrl+R (resize the window and reload colors)
+                else if (c == 18) { // ctrl + r (resize and reload)
                     getWindowSize(screenRows, screenCols);
+                    loadColorConfig(getNiteConfigPath());
                 }
                 // Handle syntax higlighting toggle
                 else if (c == 20) { // ctrl + t (toggle syntax highlighting)

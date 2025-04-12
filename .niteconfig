@@ -1,0 +1,22 @@
+# NITE Editor Color Configuration
+
+default = white
+type = green
+type_modifier = light_gray
+cast = cyan
+control_flow = yellow
+operator = magenta
+memory_management = blue
+exception_handling = red
+oop = blue
+template = cyan
+namespace = dark_blue
+coroutine = magenta
+concept = yellow
+boolean_literal = green
+null = dark_red
+preprocessor = cyan
+misc = dark_magenta
+highlight = bg_red
+tabSize = 4
+syntaxHighlighting = true
