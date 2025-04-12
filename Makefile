@@ -16,9 +16,9 @@ OBJ = $(SRC:.cpp=.o)
 # Default target
 all: $(TARGET)
 
-# Rule to link the object files into the executable
+# Rule to link the object files into the executable (static linking added)
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -static -static-libgcc -static-libstdc++ -o $@ $^
 
 # Rule to compile the .cpp files into .o object files
 $(OBJ): $(SRC)
