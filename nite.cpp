@@ -1705,12 +1705,6 @@ class Nite {
                 drawEditor();
             }
         }        
-
-        void setConsoleBackgroundColor(int colorCode) {
-            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);  // Get console handle
-            WORD color = colorCode << 4; // Shift background color into the higher nibble
-            SetConsoleTextAttribute(hOut, color);  // Set text attributes
-        }
 };
 
 int main(int argc, char* argv[]) {
