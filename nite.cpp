@@ -11,6 +11,164 @@
 #include <fstream>      // Includes file stream classes for file handling.
 #include <sstream>      // Includes string stream classes for reading from and writing to strings.
 #include <cstdlib>      // Includes functions like std::exit() and random number generation.
+#include <unordered_map> // Includes unordered_map for hash table-like data structures.
+
+// Contains C and C++ keywords
+std::unordered_map<std::string, std::string> cxxKeywords = {
+    // **Built-in Types**
+    {"bool", "Type"},
+    {"char", "Type"},
+    {"char8_t", "Type"},
+    {"char16_t", "Type"},
+    {"char32_t", "Type"},
+    {"double", "Type"},
+    {"float", "Type"},
+    {"int", "Type"},
+    {"long", "Type"},
+    {"short", "Type"},
+    {"signed", "Type"},
+    {"unsigned", "Type"},
+    {"void", "Type"},
+    {"wchar_t", "Type"},
+
+    // **Type Modifiers / Qualifiers**
+    {"const", "Type Modifier"},
+    {"constexpr", "Type Modifier"},
+    {"consteval", "Type Modifier"},
+    {"constinit", "Type Modifier"},
+    {"inline", "Type Modifier"},
+    {"mutable", "Type Modifier"},
+    {"volatile", "Type Modifier"},
+    {"static", "Type Modifier"},
+    {"register", "Type Modifier"},
+    {"thread_local", "Type Modifier"},
+
+    // **Type Casts**
+    {"const_cast", "Cast"},
+    {"dynamic_cast", "Cast"},
+    {"reinterpret_cast", "Cast"},
+    {"static_cast", "Cast"},
+
+    // **Control Flow**
+    {"break", "Control Flow"},
+    {"case", "Control Flow"},
+    {"continue", "Control Flow"},
+    {"default", "Control Flow"},
+    {"do", "Control Flow"},
+    {"else", "Control Flow"},
+    {"for", "Control Flow"},
+    {"goto", "Control Flow"},
+    {"if", "Control Flow"},
+    {"return", "Control Flow"},
+    {"switch", "Control Flow"},
+    {"while", "Control Flow"},
+
+    // **Logical / Bitwise Operators**
+    {"and", "Operator"},
+    {"and_eq", "Operator"},
+    {"bitand", "Operator"},
+    {"bitor", "Operator"},
+    {"compl", "Operator"},
+    {"not", "Operator"},
+    {"not_eq", "Operator"},
+    {"or", "Operator"},
+    {"or_eq", "Operator"},
+    {"xor", "Operator"},
+    {"xor_eq", "Operator"},
+
+    // **Memory Management**
+    {"new", "Memory Management"},
+    {"delete", "Memory Management"},
+    {"sizeof", "Memory Management"},
+    {"alignas", "Memory Management"},
+    {"alignof", "Memory Management"},
+
+    // **Exception Handling**
+    {"try", "Exception Handling"},
+    {"catch", "Exception Handling"},
+    {"throw", "Exception Handling"},
+
+    // **Object-Oriented Keywords**
+    {"struct", "Object-Oriented"},
+    {"enum", "Object-Oriented"},
+    {"class", "Object-Oriented"},
+    {"friend", "Object-Oriented"},
+    {"private", "Object-Oriented"},
+    {"protected", "Object-Oriented"},
+    {"public", "Object-Oriented"},
+    {"this", "Object-Oriented"},
+    {"virtual", "Object-Oriented"},
+
+    // **Templates & Generics**
+    {"template", "Template"},
+    {"typename", "Template"},
+    {"typeid", "Template"},
+    {"using", "Template"},
+
+    // **Namespace & Modules**
+    {"namespace", "Namespace"},
+    {"export", "Namespace"},
+
+    // **Cast/Type-Introspection**
+    {"decltype", "Cast/Introspection"},
+    {"typeid", "Cast/Introspection"},
+
+    // **Operator Overloading**
+    {"operator", "Operator Overloading"},
+
+    // **Boolean Literals**
+    {"true", "Boolean Literal"},
+    {"false", "Boolean Literal"},
+
+    // **Null / Undefined**
+    {"nullptr", "Null/Undefined"},
+
+    // **Preprocessor (Not a keyword, but often highlighted)**
+    {"define", "Preprocessor"},
+    {"include", "Preprocessor"},
+    {"undef", "Preprocessor"},
+    {"ifdef", "Preprocessor"},
+    {"ifndef", "Preprocessor"},
+    {"if", "Preprocessor"},
+    {"else", "Preprocessor"},
+    {"elif", "Preprocessor"},
+    {"endif", "Preprocessor"},
+    {"pragma", "Preprocessor"},
+
+    // **Coroutines (C++20)**
+    {"co_await", "Coroutines"},
+    {"co_return", "Coroutines"},
+    {"co_yield", "Coroutines"},
+
+    // **Concepts (C++20)**
+    {"concept", "Concepts"},
+    {"requires", "Concepts"},
+
+    // **Miscellaneous**
+    {"asm", "Miscellaneous"},
+    {"explicit", "Miscellaneous"},
+    {"extern", "Miscellaneous"},
+    {"noexcept", "Miscellaneous"},
+    {"static_assert", "Miscellaneous"}
+};
+
+// Define color codes for different categories
+const WORD TYPE_COLOR = FOREGROUND_GREEN;
+const WORD TYPE_MODIFIER_COLOR = FOREGROUND_INTENSITY | FOREGROUND_GREEN;
+const WORD CAST_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;
+const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;
+const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+const WORD OOP_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;
+const WORD TEMPLATE_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;
+const WORD NAMESPACE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED;
+const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+const WORD NULL_COLOR = FOREGROUND_RED;
+const WORD PREPROCESSOR_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE;  // Cyan-like color
+const WORD COROUTINE_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;  // Magenta-like color
+const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;  // Yellow-like color
+const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 
 // Struct to represent different types of actions that can be performed in an editor-like environment
 struct Action {
@@ -68,6 +226,9 @@ class Editor {
         bool processingInput = false;  // Flag to indicate if the editor is currently processing user input
         enum InputType { NONE, OPEN_FILE, GOTO_LINE };  // Enum for different types of user input (None, opening a file, or going to a specific line)
         InputType currentInputType = NONE;  // The current type of input being processed (initialized to NONE)
+
+        // Syntax higlighting flag
+        bool syntaxHighlighting = false;  // Flag to enable or disable syntax highlighting
 
         Editor() {
             getWindowSize(screenRows, screenCols);  // Calls the function getWindowSize to initialize screenRows and screenCols with the current window size.
@@ -220,68 +381,68 @@ class Editor {
         void drawEditor() {
             std::ostringstream buffer;
             buffer.str(""); buffer.clear();  // Clear and reset the output buffer to start fresh
-
+        
             // Normalized selection coordinates if a selection exists
             int startX = 0, startY = 0, endX = 0, endY = 0;
             if (hasSelection) {
                 normalizeSelection(startX, startY, endX, endY);  // Normalize the selection to ensure start is before end
             }
-
+        
             // Handle line drawing with selection highlight using ANSI escape codes
             for (int y = 0; y < screenRows - 1; ++y) {  // Loop through each screen row, leaving space for the status bar
                 int fileRow = y + rowOffset;  // Map screen row to file row, offset by rowOffset
                 std::string lineNumberPart;
-
+        
                 // Check if the file has a line for the current row
                 if (fileRow < (int)lines.size()) {
                     lineNumberPart = std::to_string(fileRow + 1);  // Line number (1-based index)
                 } else {
                     lineNumberPart = "~";  // Empty line indicated by a tilde
                 }
-
+        
                 // Pad line number with spaces to match width
                 while (lineNumberPart.size() < static_cast<size_t>(std::to_string(std::max(1, (int)lines.size())).length()))
                     lineNumberPart = " " + lineNumberPart;
-
+        
                 // Add separator between line number and actual line content
                 lineNumberPart += " | ";
-
+        
                 // Construct the line display
                 std::string displayLine = lineNumberPart;
-
+        
                 if (fileRow < (int)lines.size()) {
                     std::string& line = lines[fileRow];
-
+        
                     // Cut off by column offset and screen width minus the line number gutter
                     int lineEnd = std::min((int)line.size(), colOffset + screenCols - (int)displayLine.size());
                     for (int x = colOffset; x < lineEnd; ++x) {
                         displayLine += line[x];  // Add each character within the visible range
                     }
                 }
-
+        
                 // Pad the rest with spaces if the line is shorter than the screen width
                 if ((int)displayLine.size() < screenCols) {
                     displayLine += std::string(screenCols - displayLine.size(), ' ');  // Pad the end of the line with spaces
                 }
-
+        
                 buffer << displayLine;  // Append the final line content to the buffer
             }
-
+        
             // Draw the status bar at the bottom
             drawStatusBar(buffer);
-
+        
             // Get the entire buffer as a string
             std::string output = buffer.str();
-
+        
             // Handle cursor position (moving the cursor to the correct position on the screen)
             HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
+        
             // Create a buffer of attributes for the text (initially set to normal foreground colors)
             std::vector<WORD> attributes(output.size(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-
+        
             int lineNumberWidth = std::to_string(std::max(1, (int)lines.size())).length();  // Width of line number gutter
             int gutterWidth = lineNumberWidth + 3;  // 3 for the separator " | "
-
+        
             // Set selection attributes (highlight selected text with background color)
             if (hasSelection) {
                 for (int y = 0; y < screenRows - 1; ++y) {  // Loop through the rows again to apply selection highlights
@@ -295,35 +456,153 @@ class Editor {
                                                 (fileRow == startY && fileRow == endY && x + colOffset >= startX && x + colOffset < endX) ||
                                                 (fileRow == startY && fileRow != endY && x + colOffset >= startX) ||
                                                 (fileRow == endY && fileRow != startY && x + colOffset < endX));
-
+        
                                 // Set selection highlight (blue background with normal text)
                                 if (isSelected) {
                                     attributes[bufferPos + gutterWidth] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
-                                                                        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                                                                            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
                                 }
                             }
                         }
                     }
                 }
             }
-
+        
             // Write the buffer (text) to console
             DWORD written;
             WriteConsoleOutputCharacterA(hOut, output.c_str(), output.size(), {0, 0}, &written);
+        
+            // Tokenize each line and apply keyword colors
+            for (int y = 0; y < screenRows - 1; ++y) {
+                int fileRow = y + rowOffset;
+                if (fileRow >= (int)lines.size()) continue;
 
-            // Write the attributes (colors) to the console
+                std::string& line = lines[fileRow];
+                int lineEnd = std::min((int)line.size(), colOffset + screenCols - gutterWidth);
+
+                int x = colOffset;
+                bool inString = false;  // Track if inside " or ' string
+
+                while (x < lineEnd) {
+                    int bufferPos = y * screenCols + (x - colOffset);
+
+                    if (!syntaxHighlighting) {
+                        attributes[bufferPos + gutterWidth] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                        ++x;
+                        continue;
+                    }
+
+                    // Handle string literals (single or double quotes)
+                    if (line[x] == '"' || line[x] == '\'') {
+                        inString = !inString;  // Toggle string mode
+                        ++x;
+                        continue;
+                    }
+
+                    // If inside a string, color it blue
+                    if (inString) {
+                        int start = x;
+                        while (x < lineEnd && line[x] != '"' && line[x] != '\'') {
+                            ++x;
+                        }
+                        for (int i = start; i < x; ++i) {
+                            int bufferPosStr = y * screenCols + (i - colOffset);
+                            attributes[bufferPosStr + gutterWidth] = FOREGROUND_BLUE;
+                        }
+                        continue;
+                    }
+
+                    // Handle comments
+                    if (line[x] == '/' && x + 1 < lineEnd && line[x + 1] == '/') {
+                        while (x < lineEnd) {
+                            int commentPos = y * screenCols + (x - colOffset);
+                            attributes[commentPos + gutterWidth] = FOREGROUND_GREEN;  // Dark green
+                            ++x;
+                        }
+                        continue;
+                    }
+
+                    // Handle angle-bracketed content
+                    if (line[x] == '<') {
+                        int start = x;
+                        int endPos = line.find('>', x + 1);
+                        if (endPos != std::string::npos && endPos < lineEnd) {
+                            for (int i = start; i <= endPos; ++i) {
+                                int bufferPosBracket = y * screenCols + (i - colOffset);
+                                attributes[bufferPosBracket + gutterWidth] = FOREGROUND_RED | FOREGROUND_INTENSITY;
+                            }
+                            x = endPos + 1;
+                            continue;
+                        }
+                    }
+
+                    // Handle std::
+                    if (line.substr(x, 5) == "std::") {
+                        int start = x;
+                        x += 5;
+                        for (int i = start; i < x; ++i) {
+                            int bufferPosStd = y * screenCols + (i - colOffset);
+                            attributes[bufferPosStd + gutterWidth] = FOREGROUND_RED;
+                        }
+                        continue;
+                    }
+
+                    // Handle identifiers and keywords
+                    if (std::isalpha(line[x]) || line[x] == '_') {
+                        int start = x;
+                        while (x < lineEnd && (std::isalnum(line[x]) || line[x] == '_')) {
+                            ++x;
+                        }
+                        std::string token = line.substr(start, x - start);
+
+                        // Handle std::
+                        if (token == "std" && x < lineEnd && line[x] == ':') {
+                            int bufferPosStdOnly = y * screenCols + (start - colOffset);
+                            attributes[bufferPosStdOnly + gutterWidth] = FOREGROUND_RED;
+                            continue;
+                        }
+
+                        auto it = cxxKeywords.find(token);
+                        if (it != cxxKeywords.end()) {
+                            WORD tokenColor;
+                            const std::string &cat = it->second;
+                            if      (cat == "Type")               tokenColor = TYPE_COLOR;
+                            else if (cat == "Type Modifier")      tokenColor = TYPE_MODIFIER_COLOR;
+                            else if (cat == "Cast")               tokenColor = CAST_COLOR;
+                            else if (cat == "Control Flow")       tokenColor = CONTROL_FLOW_COLOR;
+                            else if (cat == "Operator")           tokenColor = OPERATOR_COLOR;
+                            else if (cat == "Memory Management")  tokenColor = MEMORY_MANAGEMENT_COLOR;
+                            else if (cat == "Exception Handling") tokenColor = EXCEPTION_HANDLING_COLOR;
+                            else if (cat == "Object-Oriented")    tokenColor = OOP_COLOR;
+                            else if (cat == "Template")           tokenColor = TEMPLATE_COLOR;
+                            else if (cat == "Namespace")          tokenColor = NAMESPACE_COLOR;
+                            else if (cat == "Boolean Literal")    tokenColor = BOOLEAN_LITERAL_COLOR;
+                            else if (cat == "Null/Undefined")     tokenColor = NULL_COLOR;
+                            else if (cat == "Preprocessor")       tokenColor = PREPROCESSOR_COLOR;
+                            else if (cat == "Coroutines")         tokenColor = COROUTINE_COLOR;
+                            else if (cat == "Concepts")           tokenColor = CONCEPT_COLOR;
+                            else                                   tokenColor = DEFAULT_COLOR;
+
+                            for (int i = start; i < x; ++i) {
+                                int bufferPosToken = y * screenCols + (i - colOffset);
+                                attributes[bufferPosToken + gutterWidth] = tokenColor;
+                            }
+                        }
+                    } else {
+                        ++x;
+                    }
+                }
+            }    
+            // Write the attributes to the console
             for (int y = 0; y < screenRows; ++y) {
                 int startIdx = y * screenCols;
-                int length = screenCols;
-                if (startIdx + length <= (int)attributes.size()) {
-                    WriteConsoleOutputAttribute(hOut, &attributes[startIdx], length, {0, (SHORT)y}, &written);
-                }
+                WriteConsoleOutputAttribute(hOut, &attributes[startIdx], screenCols, {0, (SHORT)y}, &written);
             }
-
+        
             // Position the cursor based on its current position (adjusted by rowOffset and colOffset)
             moveCursor(cursorY - rowOffset, cursorX - colOffset + gutterWidth);
-        }
-    
+        }        
+
         void scroll() {
             // Vertical scroll: if cursor is above the visible area, move the window up
             if (cursorY < rowOffset) rowOffset = cursorY;
@@ -1395,6 +1674,10 @@ class Editor {
                 // Handle Ctrl+R (resize the window)
                 else if (c == 18) { // ctrl + r (resize)
                     getWindowSize(screenRows, screenCols);
+                }
+                // Handle syntax higlighting toggle
+                else if (c == 20) { // ctrl + t (toggle syntax highlighting)
+                    syntaxHighlighting = !syntaxHighlighting;
                 }
                 // Handle printable characters (text input)
                 else if (c >= 32 && c <= 126) {  // Printable characters (ASCII)
