@@ -7,6 +7,23 @@
 #include <fstream>
 #include <sstream>
 
+struct Action {
+    enum Type {
+        InsertChar,
+        DeleteChar,
+        InsertLine,
+        DeleteLine
+    };
+
+    Type type;
+    int cursorX, cursorY;
+    std::string text;  // For InsertChar, DeleteChar, InsertLine, and DeleteLine
+    std::string oldText;  // For InsertChar, DeleteChar, InsertLine, and DeleteLine
+};
+
+std::vector<Action> undoStack;
+std::vector<Action> redoStack;
+
 class Editor {
 public:
     int screenRows, screenCols;
@@ -90,8 +107,19 @@ public:
     }
 
     void insertChar(char c) {
-        if (cursorY >= (int)lines.size())
+        if (cursorY >= (int)lines.size()) {
             lines.resize(cursorY + 1);
+        }
+    
+        // Store the current state before inserting
+        Action action;
+        action.type = Action::InsertChar;
+        action.cursorX = cursorX;
+        action.cursorY = cursorY;
+        action.text = std::string(1, c);  // The character inserted
+    
+        undoStack.push_back(action);  // Push the action to the undo stack
+    
         lines[cursorY].insert(lines[cursorY].begin() + cursorX, c);
         cursorX++;
         dirty = true;
@@ -105,10 +133,32 @@ public:
     void deleteChar() {
         if (cursorY >= (int)lines.size()) return;
         if (cursorX > 0) {
+            char deletedChar = lines[cursorY][cursorX - 1];
+            
+            // Store the current state before deleting
+            Action action;
+            action.type = Action::DeleteChar;
+            action.cursorX = cursorX;
+            action.cursorY = cursorY;
+            action.oldText = std::string(1, deletedChar);  // The deleted character
+            
+            undoStack.push_back(action);  // Push the action to the undo stack
+            
             lines[cursorY].erase(lines[cursorY].begin() + cursorX - 1);
             cursorX--;
         } else if (cursorY > 0) {
             int prevLen = (int)lines[cursorY - 1].size();
+            std::string deletedLine = lines[cursorY];
+
+            // Store the current state before merging
+            Action action;
+            action.type = Action::DeleteLine;
+            action.cursorX = cursorX;
+            action.cursorY = cursorY;
+            action.oldText = deletedLine;
+
+            undoStack.push_back(action);  // Push the action to the undo stack
+
             lines[cursorY - 1] += lines[cursorY];
             lines.erase(lines.begin() + cursorY);
             cursorY--;
@@ -202,30 +252,106 @@ public:
         dirty = false;
     }
 
+    void undo() {
+        if (undoStack.empty()) return;  // Nothing to undo
+        
+        // Pop the latest action from the undo stack
+        Action action = undoStack.back();
+        undoStack.pop_back();
+    
+        // Apply the inverse of the action
+        switch (action.type) {
+            case Action::InsertChar:
+                // Undo InsertChar by deleting the inserted character
+                if (cursorY >= 0 && cursorY < (int)lines.size() && cursorX > 0) {
+                    lines[cursorY].erase(cursorX - 1, 1);
+                    cursorX--;
+                }
+                break;
+            case Action::DeleteChar:
+                // Undo DeleteChar by inserting the deleted character back
+                if (cursorY >= 0 && cursorY < (int)lines.size()) {
+                    lines[cursorY].insert(cursorX, action.oldText);
+                    cursorX++;
+                }
+                break;
+            case Action::InsertLine:
+                // Undo InsertLine by deleting the inserted line
+                if (cursorY < (int)lines.size()) {
+                    lines.erase(lines.begin() + cursorY);
+                }
+                break;
+            case Action::DeleteLine:
+                // Undo DeleteLine by reinserting the deleted line
+                if (cursorY < (int)lines.size()) {
+                    lines.insert(lines.begin() + cursorY, action.oldText);
+                }
+                break;
+        }
+    
+        redoStack.push_back(action);  // Push the undone action to the redo stack
+    }    
+
+    void redo() {
+        if (redoStack.empty()) return;  // Nothing to redo
+    
+        // Pop the latest action from the redo stack
+        Action action = redoStack.back();
+        redoStack.pop_back();
+    
+        // Apply the action again
+        switch (action.type) {
+            case Action::InsertChar:
+                insertChar(action.text[0]);
+                break;
+            case Action::DeleteChar:
+                deleteChar();
+                break;
+            case Action::InsertLine:
+                // Insert a new line at cursor position
+                if (cursorY < (int)lines.size()) {
+                    lines.insert(lines.begin() + cursorY, action.text);
+                }
+                break;
+            case Action::DeleteLine:
+                // Delete the line at cursor position
+                if (cursorY < (int)lines.size()) {
+                    lines.erase(lines.begin() + cursorY);
+                }
+                break;
+        }
+    
+        undoStack.push_back(action);  // Push the redone action to the undo stack
+    }       
+
     void processInput() {
-        // Initial draw
         scroll();
         drawEditor();
         
         while (true) {
             int c = _getch();
             
+            // Check for Ctrl + Z (undo)
+            if (c == 26) {  // ASCII value for Ctrl+Z
+                std::cout << "Undoing last action...\n";
+                undo();
+            }
+            // Check for Ctrl + Y (redo)
+            else if (c == 25) {  // ASCII value for Ctrl+Y
+                std::cout << "Redoing last action...\n";
+                redo();
+            }
             // Handle special key input (like arrow keys, etc.)
-            if (c == 224) {  // Special key (like arrow keys, etc.)
+            else if (c == 224) {  // Special key (like arrow keys, etc.)
                 int c2 = _getch();
                 
-                // Ignore control characters (Ctrl + key)
                 if (c2 >= 1 && c2 <= 31) {
                     continue;  // Ignore control characters
                 }
                 
-                // Handle DEL key (ASCII 127) for word deletion
-                if (c2 == 83) {  // DEL key (Windows-specific scan code for DEL)
-                    deleteWord();
-                } else {
-                    moveCursorKey(c2);
-                }
-            } else if (c == 27) {  // Escape
+                moveCursorKey(c2);
+            }
+            else if (c == 27) {  // Escape
                 break;
             } else if (c == '\t') {  // Tab
                 insertTab();
@@ -246,12 +372,13 @@ public:
                 // Handle normal characters and insert them
                 insertChar((char)c);
             }
-        
+            
             // Ensure the scroll state is correct after each key press
             scroll();
             drawEditor();
         }
     }    
+
 };
 
 int main(int argc, char* argv[]) {
