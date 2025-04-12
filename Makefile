@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra
 
 # Target executable name
-TARGET = err
+TARGET = ErrorWriter
 
 # Source files
 SRC = ErrorWriter.cpp
