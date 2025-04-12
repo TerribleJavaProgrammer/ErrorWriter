@@ -454,36 +454,7 @@ class Nite {
         
             int lineNumberWidth = std::to_string(std::max(1, (int)lines.size())).length();  // Width of line number gutter
             int gutterWidth = lineNumberWidth + 3;  // 3 for the separator " | "
-        
-            // Set selection attributes (highlight selected text with background color)
-            if (hasSelection) {
-                for (int y = 0; y < screenRows - 1; ++y) {  // Loop through the rows again to apply selection highlights
-                    int fileRow = y + rowOffset;
-                    if (fileRow < (int)lines.size()) {
-                        for (int x = 0; x < screenCols && x + colOffset < (int)lines[fileRow].size(); ++x) {
-                            int bufferPos = y * screenCols + x;
-                            if (bufferPos < (int)attributes.size()) {
-                                // Check if the current position is within the selection range
-                                bool isSelected = ((fileRow > startY && fileRow < endY) ||
-                                                (fileRow == startY && fileRow == endY && x + colOffset >= startX && x + colOffset < endX) ||
-                                                (fileRow == startY && fileRow != endY && x + colOffset >= startX) ||
-                                                (fileRow == endY && fileRow != startY && x + colOffset < endX));
-        
-                                // Set selection highlight (blue background with normal text)
-                                if (isSelected) {
-                                    attributes[bufferPos + gutterWidth] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
-                                                                            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        
-            // Write the buffer (text) to console
-            DWORD written;
-            WriteConsoleOutputCharacterA(hOut, output.c_str(), output.size(), {0, 0}, &written);
-        
+
             // Tokenize each line and apply keyword colors
             for (int y = 0; y < screenRows - 1; ++y) {
                 int fileRow = y + rowOffset;
@@ -605,7 +576,37 @@ class Nite {
                         ++x;
                     }
                 }
-            }    
+            }
+        
+            // Set selection attributes (highlight selected text with background color)
+            if (hasSelection) {
+                for (int y = 0; y < screenRows - 1; ++y) {  // Loop through the rows again to apply selection highlights
+                    int fileRow = y + rowOffset;
+                    if (fileRow < (int)lines.size()) {
+                        for (int x = 0; x < screenCols && x + colOffset < (int)lines[fileRow].size(); ++x) {
+                            int bufferPos = y * screenCols + x;
+                            if (bufferPos < (int)attributes.size()) {
+                                // Check if the current position is within the selection range
+                                bool isSelected = ((fileRow > startY && fileRow < endY) ||
+                                                (fileRow == startY && fileRow == endY && x + colOffset >= startX && x + colOffset < endX) ||
+                                                (fileRow == startY && fileRow != endY && x + colOffset >= startX) ||
+                                                (fileRow == endY && fileRow != startY && x + colOffset < endX));
+        
+                                // Set selection highlight (blue background with normal text)
+                                if (isSelected) {
+                                    attributes[bufferPos + gutterWidth] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
+                                                                            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        
+            // Write the buffer (text) to console
+            DWORD written;
+            WriteConsoleOutputCharacterA(hOut, output.c_str(), output.size(), {0, 0}, &written);
+
             // Write the attributes to the console
             for (int y = 0; y < screenRows; ++y) {
                 int startIdx = y * screenCols;
