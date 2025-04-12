@@ -232,6 +232,28 @@ public:
         }
     }
 
+    void scrollToLine(int lineNumber) {
+        // Clamp line number to valid range
+        lineNumber = std::max(0, std::min((int)lines.size() - 1, lineNumber));
+    
+        // Scroll so that the line appears ~1/3 from top, or as high as possible
+        int targetRowOffset = lineNumber - screenRows / 3;
+        rowOffset = std::max(0, targetRowOffset);
+    
+        // Move cursorY to the line we scrolled to
+        cursorY = lineNumber;
+    
+        // Reset horizontal scroll too, if necessary
+        if (!skipHorizontalScroll) {
+            if (cursorX < colOffset)
+                colOffset = cursorX;
+            if (cursorX >= colOffset + screenCols)
+                colOffset = cursorX - screenCols + 1;
+        } else {
+            skipHorizontalScroll = false;
+        }
+    }    
+
     void insertChar(char c) {
         // If there's a selection, delete it first
         if (hasSelection) {
@@ -900,6 +922,8 @@ public:
                 insertNewLine();
             } else if (c == 8) {  // Backspace
                 deleteChar();
+            } else if (c == 127) { // DEL key
+                deleteWord();
             } else if (c == 19) {  // Ctrl+S (Save file)
                 saveFile();
             } else if (c == 15) {  // Ctrl+O (Open file)
@@ -911,9 +935,16 @@ public:
                 if (hasSelection) {
                     deleteSelection();
                 }
-            } else if (c == 'q' && ctrlPressed) {  // Ctrl+Q (Quit)
+            } else if (c == 17) {  // Ctrl+Q (Quit)
                 break;
-            } else if (c >= 32 && c <= 126) {  // Printable characters
+            } else if (c == 7) {
+                std::cout << "Enter line number to scroll to: ";
+                std::string lineStr;
+                std::getline(std::cin, lineStr);
+                int line = std::stoi(lineStr) - 1;  // Convert to zero-based index
+                std::cout << line << std::endl;
+                scrollToLine(line);
+            }else if (c >= 32 && c <= 126) {  // Printable characters
                 // Insert the character
                 insertChar((char)c);
             }
