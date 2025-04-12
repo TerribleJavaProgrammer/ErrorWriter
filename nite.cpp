@@ -207,7 +207,7 @@ struct Action {
 std::vector<Action> undoStack;  // A stack (vector) to store actions for undo functionality, allowing you to revert the last action performed.
 std::vector<Action> redoStack;  // A stack (vector) to store actions for redo functionality, allowing you to reapply an undone action.
 
-class Editor {
+class Nite {
     public:
         int screenRows, screenCols;  // Dimensions of the editor's screen (number of rows and columns visible at a time)
         int cursorX = 0, cursorY = 0;  // Current cursor position (X for horizontal, Y for vertical)
@@ -242,7 +242,7 @@ class Editor {
         // Syntax higlighting flag
         bool syntaxHighlighting = false;  // Flag to enable or disable syntax highlighting
 
-        Editor() {
+        Nite() {
             getWindowSize(screenRows, screenCols);  // Calls the function getWindowSize to initialize screenRows and screenCols with the current window size.
             
             HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);  // Gets the handle for the standard output (console window) to manipulate its properties.
@@ -1718,7 +1718,7 @@ int main(int argc, char* argv[]) {
     SetConsoleMode(hOut, dwMode);
 
     // Create an instance of the `Editor` class to handle file editing and input processing
-    Editor editor;
+    Nite editor;
 
     // If a file path is provided as a command-line argument (i.e., argc >= 2)
     // Open the file specified in argv[1] and load its content into the editor
