@@ -272,7 +272,7 @@ class Editor {
                     sb << status.substr(0, screenCols);  // Truncate the status to fit within the screen width.
             } else {  // If not waiting for input, draw the normal status bar.
                 // Build the status string with general information (e.g., editor name, filename, modifications, selection state).
-                std::string status = "[ErrorWriter] " + (filename.empty() ? "[No Name]" : filename);  // Shows editor name or file name if available.
+                std::string status = "[Nite] " + (filename.empty() ? "[No Name]" : filename);  // Shows editor name or file name if available.
                 
                 if (dirty) status += " (modified)";  // Indicates if the file has unsaved changes.
                 if (hasSelection) status += " (text selected)";  // Indicates if there is a text selection.
