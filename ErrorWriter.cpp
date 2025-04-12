@@ -8,6 +8,17 @@
 #include <sstream>
 #include <cstdlib>
 
+// Quick helper function that returns the digits of a number; used for aligning things.
+int countDigits(int n) {
+    if (n == 0) return 1;
+    int digits = 0;
+    while (n > 0) {
+        n /= 10;
+        digits++;
+    }
+    return digits;
+}
+
 struct Action {
     enum Type {
         InsertChar,
@@ -133,37 +144,39 @@ public:
         // Handle line drawing with selection highlight using ANSI escape codes
         for (int y = 0; y < screenRows - 1; ++y) {
             int fileRow = y + rowOffset;
+            std::string lineNumberPart;
+        
             if (fileRow < (int)lines.size()) {
-                std::string displayLine;
-                std::string& line = lines[fileRow];
-                
-                // Process the line character by character for selection highlighting
-                int lineEnd = std::min((int)line.size(), colOffset + screenCols);
-                for (int x = colOffset; x < lineEnd; ++x) {
-                    // Check if this character is selected
-                    bool isSelected = hasSelection && 
-                                     ((fileRow > startY && fileRow < endY) ||
-                                      (fileRow == startY && fileRow == endY && x >= startX && x < endX) ||
-                                      (fileRow == startY && fileRow != endY && x >= startX) ||
-                                      (fileRow == endY && fileRow != startY && x < endX));
-                    
-                    // Add the character with appropriate formatting if selected
-                    if (isSelected) {
-                        displayLine += line[x];
-                    } else {
-                        displayLine += line[x];
-                    }
-                }
-                
-                // Pad with spaces to fill screen width
-                if ((int)displayLine.size() < screenCols) {
-                    displayLine += std::string(screenCols - displayLine.size(), ' ');
-                }
-                buffer << displayLine;
+                lineNumberPart = std::to_string(fileRow + 1);  // +1 for 1-based line numbering
             } else {
-                // Add a tilde line for empty space
-                buffer << "~" << std::string(screenCols - 1, ' ');
+                lineNumberPart = "~";  // Empty tilde line
             }
+            // Pad the line number with spaces
+            while (lineNumberPart.size() < static_cast<size_t>(std::to_string(std::max(1, (int)lines.size())).length()))
+                lineNumberPart = " " + lineNumberPart;
+        
+            // Separator
+            lineNumberPart += " | ";
+        
+            // Construct line display
+            std::string displayLine = lineNumberPart;
+        
+            if (fileRow < (int)lines.size()) {
+                std::string& line = lines[fileRow];
+        
+                // Cut off by column offset and screen width minus the line number gutter
+                int lineEnd = std::min((int)line.size(), colOffset + screenCols - (int)displayLine.size());
+                for (int x = colOffset; x < lineEnd; ++x) {
+                    displayLine += line[x];
+                }
+            }
+        
+            // Pad the rest with spaces
+            if ((int)displayLine.size() < screenCols) {
+                displayLine += std::string(screenCols - displayLine.size(), ' ');
+            }
+        
+            buffer << displayLine;
         }
         
         // Draw status bar
@@ -178,6 +191,9 @@ public:
         // Create a buffer of attributes for the text
         std::vector<WORD> attributes(output.size(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
         
+        int lineNumberWidth = std::to_string(std::max(1, (int)lines.size())).length();
+        int gutterWidth = lineNumberWidth + 3;  // 3 for " | "
+
         // Set selection attributes
         if (hasSelection) {
             for (int y = 0; y < screenRows - 1; ++y) {
@@ -192,7 +208,7 @@ public:
                                               (fileRow == endY && fileRow != startY && x + colOffset < endX));
                             
                             if (isSelected) {
-                                attributes[bufferPos] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
+                                attributes[bufferPos + gutterWidth] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
                                                       FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
                             }
                         }
@@ -215,7 +231,7 @@ public:
         }
         
         // Position the cursor
-        moveCursor(cursorY - rowOffset, cursorX - colOffset);
+        moveCursor(cursorY - rowOffset, cursorX - colOffset + gutterWidth);
     }
 
     void scroll() {
