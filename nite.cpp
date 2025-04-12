@@ -152,23 +152,35 @@ std::unordered_map<std::string, std::string> cxxKeywords = {
     {"static_assert", "Miscellaneous"}
 };
 
-// Define color codes for different categories
-const WORD TYPE_COLOR = FOREGROUND_GREEN;
-const WORD TYPE_MODIFIER_COLOR = FOREGROUND_INTENSITY | FOREGROUND_GREEN;
-const WORD CAST_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;
-const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;
-const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-const WORD OOP_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;
-const WORD TEMPLATE_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;
-const WORD NAMESPACE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED;
-const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-const WORD NULL_COLOR = FOREGROUND_RED;
-const WORD PREPROCESSOR_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE;  // Cyan-like color
-const WORD COROUTINE_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;  // Magenta-like color
-const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;  // Yellow-like color
-const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+// Revised and cohesive color scheme
+
+// Base colors
+const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // White
+
+// Types and Modifiers
+const WORD TYPE_COLOR = FOREGROUND_GREEN;                                // Base green for types
+const WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright green for modifiers
+
+// Language Structure
+const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;       // Yellow (flow = attention)
+const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;            // Magenta (stands out but soft)
+const WORD PREPROCESSOR_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;      // Cyan (separate precompile phase)
+const WORD TEMPLATE_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // Bright cyan
+
+// Memory and Runtime
+const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY; // Bright blue (system-level)
+const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright red (error)
+const WORD NULL_COLOR = FOREGROUND_RED;                                    // Red (absence/danger)
+const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright green (truthy)
+
+// OOP and Advanced Concepts
+const WORD OOP_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;             // Bright blue (like classes)
+const WORD NAMESPACE_COLOR = FOREGROUND_BLUE;                              // Base blue (organization)
+const WORD COROUTINE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright magenta (async complexity)
+const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright yellow (meta programming)
+
+// Casting
+const WORD CAST_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan-like (type-related but distinct)
 
 // Struct to represent different types of actions that can be performed in an editor-like environment
 struct Action {
@@ -1622,8 +1634,8 @@ class Editor {
                 else if (c == 8 && ctrlPressed) {  // Ctrl+H
                     replaceAll();
                 }
-                // Handle F3 key for "Find Next"
-                else if (c == 0 && _getch() == 61) {  // F3 key
+                // Handle ctrl + n key for "Find Next"
+                else if (c == 14) {  // ctrl + n
                     findNext();
                 }
                 // Handle Escape key (cancel selection or exit)
