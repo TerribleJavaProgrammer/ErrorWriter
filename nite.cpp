@@ -14,173 +14,146 @@
 #include <unordered_map> // Includes unordered_map for hash table-like data structures.
 
 // Contains C and C++ keywords
+// Contains C and C++ keywords and operators
 std::unordered_map<std::string, std::string> cxxKeywords = {
     // **Built-in Types**
-    {"bool", "Type"},
-    {"char", "Type"},
-    {"char8_t", "Type"},
-    {"char16_t", "Type"},
-    {"char32_t", "Type"},
-    {"double", "Type"},
-    {"float", "Type"},
-    {"int", "Type"},
-    {"long", "Type"},
-    {"short", "Type"},
-    {"signed", "Type"},
-    {"unsigned", "Type"},
-    {"void", "Type"},
-    {"wchar_t", "Type"},
+    {"bool", "Type"}, {"char", "Type"}, {"char8_t", "Type"}, {"char16_t", "Type"},
+    {"char32_t", "Type"}, {"double", "Type"}, {"float", "Type"}, {"int", "Type"},
+    {"long", "Type"}, {"short", "Type"}, {"signed", "Type"}, {"unsigned", "Type"},
+    {"void", "Type"}, {"wchar_t", "Type"},
 
     // **Type Modifiers / Qualifiers**
-    {"const", "Type Modifier"},
-    {"constexpr", "Type Modifier"},
-    {"consteval", "Type Modifier"},
-    {"constinit", "Type Modifier"},
-    {"inline", "Type Modifier"},
-    {"mutable", "Type Modifier"},
-    {"volatile", "Type Modifier"},
-    {"static", "Type Modifier"},
-    {"register", "Type Modifier"},
+    {"const", "Type Modifier"}, {"constexpr", "Type Modifier"}, {"consteval", "Type Modifier"},
+    {"constinit", "Type Modifier"}, {"inline", "Type Modifier"}, {"mutable", "Type Modifier"},
+    {"volatile", "Type Modifier"}, {"static", "Type Modifier"}, {"register", "Type Modifier"},
     {"thread_local", "Type Modifier"},
 
     // **Type Casts**
-    {"const_cast", "Cast"},
-    {"dynamic_cast", "Cast"},
-    {"reinterpret_cast", "Cast"},
+    {"const_cast", "Cast"}, {"dynamic_cast", "Cast"}, {"reinterpret_cast", "Cast"},
     {"static_cast", "Cast"},
 
     // **Control Flow**
-    {"break", "Control Flow"},
-    {"case", "Control Flow"},
-    {"continue", "Control Flow"},
-    {"default", "Control Flow"},
-    {"do", "Control Flow"},
-    {"else", "Control Flow"},
-    {"for", "Control Flow"},
-    {"goto", "Control Flow"},
-    {"if", "Control Flow"},
-    {"return", "Control Flow"},
-    {"switch", "Control Flow"},
-    {"while", "Control Flow"},
+    {"break", "Control Flow"}, {"case", "Control Flow"}, {"continue", "Control Flow"},
+    {"default", "Control Flow"}, {"do", "Control Flow"}, {"else", "Control Flow"},
+    {"for", "Control Flow"}, {"goto", "Control Flow"}, {"if", "Control Flow"},
+    {"return", "Control Flow"}, {"switch", "Control Flow"}, {"while", "Control Flow"},
 
-    // **Logical / Bitwise Operators**
-    {"and", "Operator"},
-    {"and_eq", "Operator"},
-    {"bitand", "Operator"},
-    {"bitor", "Operator"},
-    {"compl", "Operator"},
-    {"not", "Operator"},
-    {"not_eq", "Operator"},
-    {"or", "Operator"},
-    {"or_eq", "Operator"},
-    {"xor", "Operator"},
-    {"xor_eq", "Operator"},
+    // **Logical / Bitwise Operators (Alternative Tokens and Keywords)**
+    {"and", "Operator"}, {"and_eq", "Operator"}, {"bitand", "Operator"}, {"bitor", "Operator"},
+    {"compl", "Operator"}, {"not", "Operator"}, {"not_eq", "Operator"}, {"or", "Operator"},
+    {"or_eq", "Operator"}, {"xor", "Operator"}, {"xor_eq", "Operator"},
+
+    // **Symbolic Operators**
+    {"+", "Operator"}, {"-", "Operator"}, {"*", "Operator"}, {"/", "Operator"}, {"%", "Operator"},
+    {"++", "Operator"}, {"--", "Operator"}, // Arithmetic
+    {"==", "Operator"}, {"!=", "Operator"}, {"<", "Operator"}, {">", "Operator"},
+    {"<=", "Operator"}, {">=", "Operator"}, // Comparison
+    {"!", "Operator"}, {"&&", "Operator"}, {"||", "Operator"}, // Logical
+    {"&", "Operator"}, {"|", "Operator"}, {"^", "Operator"}, {"~", "Operator"}, // Bitwise
+    {"<<", "Operator"}, {">>", "Operator"}, // Bit shift
+    {"=", "Operator"}, {"+=", "Operator"}, {"-=", "Operator"}, {"*=", "Operator"}, {"/=", "Operator"},
+    {"%=", "Operator"}, {"&=", "Operator"}, {"|=", "Operator"}, {"^=", "Operator"},
+    {"<<=", "Operator"}, {">>=", "Operator"}, // Assignment
+    {"?", "Operator"}, {":", "Operator"}, // Ternary
+    {".", "Operator"}, {"->", "Operator"}, {"->*", "Operator"}, {".*", "Operator"}, // Member access
+    {",", "Operator"}, // Comma
 
     // **Memory Management**
-    {"new", "Memory Management"},
-    {"delete", "Memory Management"},
-    {"sizeof", "Memory Management"},
-    {"alignas", "Memory Management"},
+    {"new", "Memory Management"}, {"delete", "Memory Management"},
+    {"sizeof", "Memory Management"}, {"alignas", "Memory Management"},
     {"alignof", "Memory Management"},
 
     // **Exception Handling**
-    {"try", "Exception Handling"},
-    {"catch", "Exception Handling"},
-    {"throw", "Exception Handling"},
+    {"try", "Exception Handling"}, {"catch", "Exception Handling"}, {"throw", "Exception Handling"},
 
     // **Object-Oriented Keywords**
-    {"struct", "Object-Oriented"},
-    {"enum", "Object-Oriented"},
-    {"class", "Object-Oriented"},
-    {"friend", "Object-Oriented"},
-    {"private", "Object-Oriented"},
-    {"protected", "Object-Oriented"},
-    {"public", "Object-Oriented"},
-    {"this", "Object-Oriented"},
-    {"virtual", "Object-Oriented"},
+    {"struct", "Object-Oriented"}, {"enum", "Object-Oriented"}, {"class", "Object-Oriented"},
+    {"friend", "Object-Oriented"}, {"private", "Object-Oriented"}, {"protected", "Object-Oriented"},
+    {"public", "Object-Oriented"}, {"this", "Object-Oriented"}, {"virtual", "Object-Oriented"},
 
     // **Templates & Generics**
-    {"template", "Template"},
-    {"typename", "Template"},
-    {"typeid", "Template"},
-    {"using", "Template"},
+    {"template", "Template"}, {"typename", "Template"}, {"using", "Template"},
 
     // **Namespace & Modules**
-    {"namespace", "Namespace"},
-    {"export", "Namespace"},
+    {"namespace", "Namespace"}, {"export", "Namespace"},
 
     // **Cast/Type-Introspection**
-    {"decltype", "Cast/Introspection"},
-    {"typeid", "Cast/Introspection"},
+    {"decltype", "Cast/Introspection"}, {"typeid", "Cast/Introspection"},
 
     // **Operator Overloading**
     {"operator", "Operator Overloading"},
 
     // **Boolean Literals**
-    {"true", "Boolean Literal"},
-    {"false", "Boolean Literal"},
+    {"true", "Boolean Literal"}, {"false", "Boolean Literal"},
 
     // **Null / Undefined**
     {"nullptr", "Null/Undefined"},
 
-    // **Preprocessor (Not a keyword, but often highlighted)**
-    {"define", "Preprocessor"},
-    {"include", "Preprocessor"},
-    {"undef", "Preprocessor"},
-    {"ifdef", "Preprocessor"},
-    {"ifndef", "Preprocessor"},
-    {"if", "Preprocessor"},
-    {"else", "Preprocessor"},
-    {"elif", "Preprocessor"},
-    {"endif", "Preprocessor"},
+    // **Preprocessor**
+    {"define", "Preprocessor"}, {"include", "Preprocessor"}, {"undef", "Preprocessor"},
+    {"ifdef", "Preprocessor"}, {"ifndef", "Preprocessor"}, {"if", "Preprocessor"},
+    {"else", "Preprocessor"}, {"elif", "Preprocessor"}, {"endif", "Preprocessor"},
     {"pragma", "Preprocessor"},
 
     // **Coroutines (C++20)**
-    {"co_await", "Coroutines"},
-    {"co_return", "Coroutines"},
-    {"co_yield", "Coroutines"},
+    {"co_await", "Coroutines"}, {"co_return", "Coroutines"}, {"co_yield", "Coroutines"},
 
     // **Concepts (C++20)**
-    {"concept", "Concepts"},
-    {"requires", "Concepts"},
+    {"concept", "Concepts"}, {"requires", "Concepts"},
 
     // **Miscellaneous**
-    {"asm", "Miscellaneous"},
-    {"explicit", "Miscellaneous"},
-    {"extern", "Miscellaneous"},
-    {"noexcept", "Miscellaneous"},
-    {"static_assert", "Miscellaneous"}
+    {"asm", "Miscellaneous"}, {"explicit", "Miscellaneous"}, {"extern", "Miscellaneous"},
+    {"noexcept", "Miscellaneous"}, {"static_assert", "Miscellaneous"}
 };
 
-// Revised and cohesive color scheme
-
-// Base colors
+// Base Colors
 const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // White
 
 // Types and Modifiers
-const WORD TYPE_COLOR = FOREGROUND_GREEN;                                // Base green for types
-const WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright green for modifiers
+const WORD TYPE_COLOR = FOREGROUND_GREEN;                                       // Base green
+const WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;      // Bright green
 
-// Language Structure
-const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;       // Yellow (flow = attention)
-const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;            // Magenta (stands out but soft)
-const WORD PREPROCESSOR_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;      // Cyan (separate precompile phase)
+// Casting and Introspection
+const WORD CAST_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE;                    // Cyan-like (type-related)
+
+// Control Flow
+const WORD CONTROL_FLOW_COLOR = FOREGROUND_RED | FOREGROUND_GREEN;             // Yellow
+
+// Operators (both symbolic and keyword-style)
+const WORD OPERATOR_COLOR = FOREGROUND_RED | FOREGROUND_BLUE;                  // Magenta
+
+// Memory Management
+const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;   // Bright blue
+
+// Exception Handling
+const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_INTENSITY;   // Bright red
+
+// Object-Oriented Keywords (classes, access, etc.)
+const WORD OOP_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;                 // Bright blue
+
+// Templates and Generics
 const WORD TEMPLATE_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // Bright cyan
 
-// Memory and Runtime
-const WORD MEMORY_MANAGEMENT_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY; // Bright blue (system-level)
-const WORD EXCEPTION_HANDLING_COLOR = FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright red (error)
-const WORD NULL_COLOR = FOREGROUND_RED;                                    // Red (absence/danger)
-const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright green (truthy)
+// Namespace & Modules
+const WORD NAMESPACE_COLOR = FOREGROUND_BLUE;                                  // Blue (organization)
 
-// OOP and Advanced Concepts
-const WORD OOP_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;             // Bright blue (like classes)
-const WORD NAMESPACE_COLOR = FOREGROUND_BLUE;                              // Base blue (organization)
-const WORD COROUTINE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright magenta (async complexity)
-const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright yellow (meta programming)
+// Coroutines (C++20)
+const WORD COROUTINE_COLOR = FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY; // Bright magenta
 
-// Casting
-const WORD CAST_COLOR = FOREGROUND_GREEN | FOREGROUND_BLUE; // Cyan-like (type-related but distinct)
+// Concepts (C++20)
+const WORD CONCEPT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // Bright yellow
+
+// Boolean Literals
+const WORD BOOLEAN_LITERAL_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // Bright green
+
+// Null / Undefined
+const WORD NULL_COLOR = FOREGROUND_RED;                                        // Red (absence)
+
+// Preprocessor
+const WORD PREPROCESSOR_COLOR = FOREGROUND_BLUE | FOREGROUND_GREEN;            // Cyan
+
+// Miscellaneous
+const WORD MISC_COLOR = FOREGROUND_BLUE | FOREGROUND_RED;                      // Soft magenta
 
 // Struct to represent different types of actions that can be performed in an editor-like environment
 struct Action {
@@ -550,22 +523,25 @@ class Nite {
                         if (it != cxxKeywords.end()) {
                             WORD tokenColor;
                             const std::string &cat = it->second;
-                            if      (cat == "Type")               tokenColor = TYPE_COLOR;
-                            else if (cat == "Type Modifier")      tokenColor = TYPE_MODIFIER_COLOR;
-                            else if (cat == "Cast")               tokenColor = CAST_COLOR;
-                            else if (cat == "Control Flow")       tokenColor = CONTROL_FLOW_COLOR;
-                            else if (cat == "Operator")           tokenColor = OPERATOR_COLOR;
-                            else if (cat == "Memory Management")  tokenColor = MEMORY_MANAGEMENT_COLOR;
-                            else if (cat == "Exception Handling") tokenColor = EXCEPTION_HANDLING_COLOR;
-                            else if (cat == "Object-Oriented")    tokenColor = OOP_COLOR;
-                            else if (cat == "Template")           tokenColor = TEMPLATE_COLOR;
-                            else if (cat == "Namespace")          tokenColor = NAMESPACE_COLOR;
-                            else if (cat == "Boolean Literal")    tokenColor = BOOLEAN_LITERAL_COLOR;
-                            else if (cat == "Null/Undefined")     tokenColor = NULL_COLOR;
-                            else if (cat == "Preprocessor")       tokenColor = PREPROCESSOR_COLOR;
-                            else if (cat == "Coroutines")         tokenColor = COROUTINE_COLOR;
-                            else if (cat == "Concepts")           tokenColor = CONCEPT_COLOR;
-                            else                                   tokenColor = DEFAULT_COLOR;
+                            if      (cat == "Type")                tokenColor = TYPE_COLOR;
+                            else if (cat == "Type Modifier")       tokenColor = TYPE_MODIFIER_COLOR;
+                            else if (cat == "Cast")                tokenColor = CAST_COLOR;
+                            else if (cat == "Cast/Introspection")  tokenColor = CAST_COLOR;
+                            else if (cat == "Control Flow")        tokenColor = CONTROL_FLOW_COLOR;
+                            else if (cat == "Operator")            tokenColor = OPERATOR_COLOR;
+                            else if (cat == "Operator Overloading")tokenColor = OPERATOR_COLOR;
+                            else if (cat == "Memory Management")   tokenColor = MEMORY_MANAGEMENT_COLOR;
+                            else if (cat == "Exception Handling")  tokenColor = EXCEPTION_HANDLING_COLOR;
+                            else if (cat == "Object-Oriented")     tokenColor = OOP_COLOR;
+                            else if (cat == "Template")            tokenColor = TEMPLATE_COLOR;
+                            else if (cat == "Namespace")           tokenColor = NAMESPACE_COLOR;
+                            else if (cat == "Coroutines")          tokenColor = COROUTINE_COLOR;
+                            else if (cat == "Concepts")            tokenColor = CONCEPT_COLOR;
+                            else if (cat == "Boolean Literal")     tokenColor = BOOLEAN_LITERAL_COLOR;
+                            else if (cat == "Null/Undefined")      tokenColor = NULL_COLOR;
+                            else if (cat == "Preprocessor")        tokenColor = PREPROCESSOR_COLOR;
+                            else if (cat == "Miscellaneous")       tokenColor = MISC_COLOR;
+                            else                                   tokenColor = DEFAULT_COLOR;                            
 
                             for (int i = start; i < x; ++i) {
                                 int bufferPosToken = y * screenCols + (i - colOffset);
