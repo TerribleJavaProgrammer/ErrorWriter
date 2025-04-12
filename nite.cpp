@@ -110,7 +110,7 @@ std::unordered_map<std::string, std::string> cxxKeywords = {
 const WORD DEFAULT_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // White
 
 // Types and Modifiers
-const WORD TYPE_COLOR = FOREGROUND_GREEN;                                       // Base green
+const WORD TYPE_COLOR = FOREGROUND_GREEN | FOREGROUND_RED;                                       // Base green
 const WORD TYPE_MODIFIER_COLOR = FOREGROUND_GREEN | FOREGROUND_INTENSITY;      // Bright green
 
 // Casting and Introspection
@@ -504,6 +504,29 @@ class Nite {
                         continue;
                     }
 
+                    // Handle operators
+                    static const std::vector<std::string> operators = {
+                        "==", "!=", "<=", ">=", "->", "::",
+                        "+", "-", "*", "/", "%", "=", "<", ">", "&", "|", "^", "~", "!", "++", "--",
+                        "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<", ">>", "<<=", ">>="
+                    };
+
+                    bool matchedOp = false;
+                    for (const auto& op : operators) {
+                        if (line.compare(x, op.size(), op) == 0) {
+                            for (int i = 0; i < (int)op.size(); ++i) {
+                                int pos = y * screenCols + (x + i - colOffset);
+                                if (pos + gutterWidth < (int)attributes.size()) {
+                                    attributes[pos + gutterWidth] = OPERATOR_COLOR;
+                                }
+                            }
+                            x += op.size();
+                            matchedOp = true;
+                            break;
+                        }
+                    }
+                    if (matchedOp) continue;
+
                     // Handle identifiers and keywords
                     if (std::isalpha(line[x]) || line[x] == '_') {
                         int start = x;
@@ -570,7 +593,7 @@ class Nite {
         
                                 // Set selection highlight (blue background with normal text)
                                 if (isSelected) {
-                                    attributes[bufferPos + gutterWidth] = BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
+                                    attributes[bufferPos + gutterWidth] = BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY | 
                                                                             FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
                                 }
                             }
