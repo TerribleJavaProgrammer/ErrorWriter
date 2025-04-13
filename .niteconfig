@@ -20,3 +20,6 @@ misc = dark_magenta
 highlight = bg_red
 tabSize = 4
 syntaxHighlighting = true
+
+# Example Text:
+# bool, const, const_cast, if, +, new, try, class, template, namespace, decltype, operator, true, nullptr, define, co_await, concept, asm
