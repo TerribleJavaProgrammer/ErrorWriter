@@ -2187,6 +2187,15 @@ class Nite {
                 startStatusInput("Error: Could not open file. Press any key to continue...", NONE);
             }
         }
+
+        void toggleFileNavigator() {
+            // Use file browser mode instead of text input for opening files
+            inFileBrowserMode = true;
+            fileNavigator = std::make_unique<FileNavigator>(
+                fs::current_path().string(),
+                screenRows, screenCols
+            );
+        }
 };
 
 int main(int argc, char* argv[]) {
@@ -2209,7 +2218,11 @@ int main(int argc, char* argv[]) {
     // If a file path is provided as a command-line argument (i.e., argc >= 2)
     // Open the file specified in argv[1] and load its content into the editor
     if (argc >= 2)
-        editor.openFile(argv[1]);
+        if (std::string(argv[1]) == "NITEFILEEXPLORER") {
+            editor.toggleFileNavigator();
+        } else {
+            editor.openFile(argv[1]);
+        }
     else
         // If no file is provided, initialize the editor with an empty line
         editor.lines.push_back("");
