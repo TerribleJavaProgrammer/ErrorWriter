@@ -2218,7 +2218,7 @@ int main(int argc, char* argv[]) {
     // If a file path is provided as a command-line argument (i.e., argc >= 2)
     // Open the file specified in argv[1] and load its content into the editor
     if (argc >= 2)
-        if (std::string(argv[1]) == "NITEFILEEXPLORER") {
+        if (std::string(argv[1]) == "explorer") {
             editor.toggleFileNavigator();
         } else {
             editor.openFile(argv[1]);
