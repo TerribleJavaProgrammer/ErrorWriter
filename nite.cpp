@@ -12,6 +12,7 @@
 #include <sstream>      // Includes string stream classes for reading from and writing to strings.
 #include <cstdlib>      // Includes functions like std::exit() and random number generation.
 #include <unordered_map> // Includes unordered_map for hash table-like data structures.
+#include <filesystem>  // Includes filesystem library for file and directory manipulation.
 
 // === Color Lookup ===
 std::unordered_map<std::string, WORD> colorMap = {
@@ -179,6 +180,238 @@ std::vector<Action> undoStack;  // A stack (vector) to store actions for undo fu
 std::vector<Action> redoStack;  // A stack (vector) to store actions for redo functionality, allowing you to reapply an undone action.
 std::vector<std::string> fileStack; // A stack (vector) to store file names for file navigation, allowing you to go back to previously opened files.
 
+namespace fs = std::filesystem;
+
+class FileNavigator {
+    private:
+        fs::path currentDirectory;
+        std::vector<fs::path> entries;
+        int selectedIndex = 0;
+        int scrollOffset = 0;
+        int screenRows;
+        int screenCols;
+        
+        // Colors for file browser (matching your existing color scheme)
+        const WORD DIRECTORY_COLOR = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        const WORD FILE_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+        const WORD SELECTED_COLOR = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | BACKGROUND_BLUE;
+        
+        // Refresh the list of entries in the current directory
+        void refreshEntries() {
+            entries.clear();
+            
+            // Add parent directory entry (..) if not at root
+            if (currentDirectory.has_parent_path() && 
+                currentDirectory != currentDirectory.root_path()) {
+                entries.push_back(currentDirectory.parent_path());
+            }
+            
+            // Add all files and directories in the current directory
+            for (const auto& entry : fs::directory_iterator(currentDirectory)) {
+                entries.push_back(entry.path());
+            }
+            
+            // Sort entries: directories first, then files, both alphabetically
+            std::sort(entries.begin(), entries.end(), [](const fs::path& a, const fs::path& b) {
+                bool aIsDir = fs::is_directory(a);
+                bool bIsDir = fs::is_directory(b);
+                
+                if (aIsDir && !bIsDir) return true;
+                if (!aIsDir && bIsDir) return false;
+                
+                return a.filename().string() < b.filename().string();
+            });
+            
+            // Reset selection if out of bounds
+            if (selectedIndex >= static_cast<int>(entries.size())) {
+                selectedIndex = std::max(0, static_cast<int>(entries.size()) - 1);
+            }
+            
+            // Adjust scroll offset if necessary
+            if (selectedIndex < scrollOffset) {
+                scrollOffset = selectedIndex;
+            } else if (selectedIndex >= scrollOffset + screenRows - 1) {
+                scrollOffset = selectedIndex - (screenRows - 1) + 1;
+            }
+        }
+        
+    public:
+        FileNavigator(const std::string& initialPath, int rows, int cols) 
+            : screenRows(rows), screenCols(cols) {
+            // Initialize with the given path or current directory if path is invalid
+            try {
+                currentDirectory = fs::absolute(initialPath);
+                if (!fs::exists(currentDirectory) || !fs::is_directory(currentDirectory)) {
+                    currentDirectory = fs::current_path();
+                }
+            } catch (...) {
+                currentDirectory = fs::current_path();
+            }
+            
+            refreshEntries();
+        }
+        
+        // Draw the file browser interface
+        void drawFileBrowser() {
+            std::ostringstream buffer;
+            buffer.str(""); 
+            buffer.clear();
+            
+            // Title bar
+            std::string title = " File Browser: " + currentDirectory.string() + " ";
+            if (title.size() > static_cast<size_t>(screenCols)) {
+                // Truncate with ellipsis if too long
+                title = " File Browser: ..." + currentDirectory.string().substr(
+                    currentDirectory.string().size() - (screenCols - 20)) + " ";
+            }
+            std::string titleBar = title + std::string(screenCols - title.size(), ' ');
+            buffer << titleBar;
+            
+            // File/directory entries
+            std::vector<std::string> displayLines;
+            std::vector<WORD> attributes(screenCols * screenRows, FILE_COLOR);
+            
+            // Set title bar attributes (white on blue background)
+            for (int i = 0; i < screenCols; i++) {
+                attributes[i] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | BACKGROUND_BLUE;
+            }
+            
+            // Add each visible entry
+            for (int i = 0; i < screenRows - 2; i++) {
+                int entryIndex = i + scrollOffset;
+                
+                if (entryIndex < static_cast<int>(entries.size())) {
+                    const fs::path& entry = entries[entryIndex];
+                    std::string filename;
+                    
+                    // Format parent directory specially
+                    if (entry == currentDirectory.parent_path()) {
+                        filename = "..";
+                    } else {
+                        filename = entry.filename().string();
+                    }
+                    
+                    // Indicate directories with a trailing slash
+                    if (fs::is_directory(entry)) {
+                        filename += "/";
+                    }
+                    
+                    // Truncate if too long for display
+                    if (filename.size() > static_cast<size_t>(screenCols - 4)) {
+                        filename = filename.substr(0, screenCols - 7) + "...";
+                    }
+                    
+                    // Format the display line with padding for selection cursor
+                    std::string displayLine = (entryIndex == selectedIndex ? "> " : "  ") + 
+                                            filename + 
+                                            std::string(screenCols - filename.size() - 2, ' ');
+                    
+                    buffer << displayLine;
+                    
+                    // Set attributes for this line
+                    int lineStart = (i + 1) * screenCols;
+                    WORD baseColor = fs::is_directory(entry) ? DIRECTORY_COLOR : FILE_COLOR;
+                    
+                    for (int j = 0; j < screenCols; j++) {
+                        attributes[lineStart + j] = (entryIndex == selectedIndex) ? SELECTED_COLOR : baseColor;
+                    }
+                } else {
+                    // Empty line
+                    buffer << std::string(screenCols, ' ');
+                }
+            }
+            
+            // Status bar / help line
+            std::string helpLine = " [↑/↓] Navigate  [Enter] Open/Enter  [Esc] Cancel ";
+            std::string statusBar = helpLine + std::string(screenCols - helpLine.size(), ' ');
+            buffer << statusBar;
+            
+            // Set status bar attributes (white on blue)
+            int statusStart = (screenRows - 1) * screenCols;
+            for (int i = 0; i < screenCols; i++) {
+                attributes[statusStart + i] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | BACKGROUND_BLUE;
+            }
+            
+            // Get the entire buffer as a string
+            std::string output = buffer.str();
+            
+            // Write the buffer (text) to console
+            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            DWORD written;
+            WriteConsoleOutputCharacterA(hOut, output.c_str(), output.size(), {0, 0}, &written);
+            
+            // Write the attributes to the console
+            for (int y = 0; y < screenRows; y++) {
+                int startIdx = y * screenCols;
+                WriteConsoleOutputAttribute(hOut, &attributes[startIdx], screenCols, {0, (SHORT)y}, &written);
+            }
+        }
+        
+        // Handle keyboard input and navigation
+        bool handleInput(int key) {
+            switch (key) {
+                case VK_UP:    // Up arrow
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        // Adjust scroll if necessary
+                        if (selectedIndex < scrollOffset) {
+                            scrollOffset = selectedIndex;
+                        }
+                    }
+                    return true;
+                    
+                case VK_DOWN:  // Down arrow
+                    if (selectedIndex < static_cast<int>(entries.size()) - 1) {
+                        selectedIndex++;
+                        // Adjust scroll if necessary
+                        if (selectedIndex >= scrollOffset + screenRows - 2) {
+                            scrollOffset = selectedIndex - (screenRows - 2) + 1;
+                        }
+                    }
+                    return true;
+                    
+                case VK_RETURN:  // Enter key
+                    if (selectedIndex >= 0 && selectedIndex < static_cast<int>(entries.size())) {
+                        const fs::path& selected = entries[selectedIndex];
+                        
+                        if (fs::is_directory(selected)) {
+                            // Enter directory
+                            currentDirectory = selected;
+                            selectedIndex = 0;
+                            scrollOffset = 0;
+                            refreshEntries();
+                            return true;
+                        } else {
+                            // Return the selected file path to be opened
+                            return false;  // Exit file browser mode
+                        }
+                    }
+                    return true;
+                    
+                case VK_ESCAPE:  // Escape key
+                    return false;  // Cancel and exit file browser mode
+                    
+                default:
+                    return true;  // Ignore other keys
+            }
+        }
+        
+        // Get the currently selected file path (if a file is selected)
+        fs::path getSelectedFile() const {
+            if (selectedIndex >= 0 && selectedIndex < static_cast<int>(entries.size())) {
+                const fs::path& selected = entries[selectedIndex];
+                if (!fs::is_directory(selected)) {
+                    return selected;
+                }
+            }
+            return fs::path();  // Empty path if no file selected
+        }
+
+        fs::path getCurrentDirectory() const {
+            return currentDirectory;
+        }
+};
+
 class Nite {
     public:
         std::unordered_map<std::string, std::string> cxxKeywords = {
@@ -300,6 +533,14 @@ class Nite {
         enum InputType { NONE, OPEN_FILE, GOTO_LINE };  // Enum for different types of user input (None, opening a file, or going to a specific line)
         InputType currentInputType = NONE;  // The current type of input being processed (initialized to NONE)
 
+        // File browser mode
+        bool inFileBrowserMode = false;
+        std::unique_ptr<FileNavigator> fileNavigator;  // Pointer to a FileNavigator object for file browsing functionality
+
+        // File state variables
+        std::string currentFile = "";  // Current file path
+        bool isModified = false;       // Track if file has unsaved changes
+
         Nite() {
             loadColorConfig(getNiteConfigPath());  // Load color configuration from the .niteconfig file located in the executable directory.
 
@@ -310,6 +551,19 @@ class Nite {
             COORD newSize = { static_cast<SHORT>(screenCols), static_cast<SHORT>(screenRows) };  // Creates a COORD structure to define the new size of the console window, using the previously obtained screen dimensions.
             
             SetConsoleScreenBufferSize(hOut, newSize);  // Sets the screen buffer size of the console window to match the specified dimensions (screenCols, screenRows).
+        }
+
+        void enterFileBrowserMode(const std::string& initialPath = "") {
+            inFileBrowserMode = true;
+            fileNavigator = std::make_unique<FileNavigator>(
+                initialPath.empty() ? fs::current_path().string() : initialPath,
+                screenRows, screenCols
+            );
+        }
+        
+        void exitFileBrowserMode() {
+            inFileBrowserMode = false;
+            fileNavigator.reset();
         }
 
         std::string getExecutableDir() {
@@ -1674,15 +1928,60 @@ class Nite {
             undoStack.push_back(action);  // Push the redone action to the undo stack
         }        
 
+        void render() {
+            if (inFileBrowserMode) {
+                fileNavigator->drawFileBrowser();
+            } else {
+                drawEditor();
+            }
+        } 
+
         void processInput() {
             // Scroll the content and update the display
             scroll();
-            drawEditor();
+            render();  // Use render() instead of drawEditor() to handle both modes
         
             // Start an infinite loop to handle key input
             while (true) {
                 // Get the next character from input (key press)
                 int c = _getch();
+        
+                // If we're in file browser mode, handle file navigation
+                if (inFileBrowserMode) {
+                    bool shouldStayInBrowser = true;
+        
+                    if (c == 224) {  // Special key (like arrow keys)
+                        int c2 = _getch();  // Get the second part of the special key
+                        
+                        if (c2 == 72) {  // Up arrow
+                            fileNavigator->handleInput(VK_UP);
+                        } else if (c2 == 80) {  // Down arrow
+                            fileNavigator->handleInput(VK_DOWN);
+                        }
+                    } else if (c == '\r') {  // Enter key
+                        shouldStayInBrowser = fileNavigator->handleInput(VK_RETURN);
+                        
+                        if (!shouldStayInBrowser) {
+                            // User selected a file, open it
+                            fs::path selectedFile = fileNavigator->getSelectedFile();
+                            inFileBrowserMode = false;
+                            
+                            if (!selectedFile.empty()) {
+                                // Open the selected file
+                                openFileFromPath(selectedFile.string());
+                            }
+                        }
+                    } else if (c == 27) {  // Escape key
+                        inFileBrowserMode = false;  // Exit file browser mode
+                    }
+                    
+                    render();  // Update the display
+                    if (!inFileBrowserMode) {
+                        continue;  // Continue to the next iteration if we just exited file browser
+                    }
+                    
+                    continue;  // Skip the rest of the loop when in file browser mode
+                }
         
                 // If we're waiting for input in the status bar (like filename, line number, etc.)
                 if (waitingForInput) {
@@ -1706,7 +2005,7 @@ class Nite {
         
                     // Recalculate the scroll and redraw the editor after status input
                     scroll();
-                    drawEditor();
+                    render();
                     continue;  // Continue to the next iteration if waiting for input
                 }
         
@@ -1795,9 +2094,14 @@ class Nite {
                 else if (c == 19) {  // Ctrl+S
                     saveFile();
                 }
-                // Handle Ctrl+O (open a file)
+                // Handle Ctrl+O (open a file using file browser)
                 else if (c == 15) {  // Ctrl+O
-                    startStatusInput("Enter filename to open: ", OPEN_FILE);
+                    // Use file browser mode instead of text input for opening files
+                    inFileBrowserMode = true;
+                    fileNavigator = std::make_unique<FileNavigator>(
+                        fs::current_path().string(),
+                        screenRows, screenCols
+                    );
                 }
                 // Handle Ctrl+. (Delete the selected text)
                 else if (c == 46 && ctrlPressed) {  // Ctrl+. (Delete selection)
@@ -1818,6 +2122,14 @@ class Nite {
                 else if (c == 18) { // ctrl + r (resize and reload)
                     getWindowSize(screenRows, screenCols);
                     loadColorConfig(getNiteConfigPath());
+                    
+                    // Update file browser dimensions if active
+                    if (inFileBrowserMode && fileNavigator) {
+                        fileNavigator = std::make_unique<FileNavigator>(
+                            fileNavigator->getCurrentDirectory().string(),
+                            screenRows, screenCols
+                        );
+                    }
                 }
                 // Handle syntax higlighting toggle
                 else if (c == 20) { // ctrl + t (toggle syntax highlighting)
@@ -1830,9 +2142,51 @@ class Nite {
         
                 // Ensure the scroll position and editor content are updated after each key press
                 scroll();
-                drawEditor();
+                render();
             }
-        }        
+        }
+        
+        void openFileFromPath(const std::string& path) {
+            // Clear the current document
+            lines.clear();
+            cursorX = 0;
+            cursorY = 0;
+            rowOffset = 0;
+            colOffset = 0;
+            hasSelection = false;
+            
+            // Open the file
+            std::ifstream file(path);
+            if (file.is_open()) {
+                std::string line;
+                while (std::getline(file, line)) {
+                    // Replace tabs with spaces if needed
+                    std::string processedLine;
+                    for (char c : line) {
+                        if (c == '\t') {
+                            processedLine += std::string(tabSize, ' ');
+                        } else {
+                            processedLine += c;
+                        }
+                    }
+                    lines.push_back(processedLine);
+                }
+                file.close();
+                
+                // If file was empty, add one empty line
+                if (lines.empty()) {
+                    lines.push_back("");
+                }
+                
+                // Update the current filename
+                currentFile = path;
+                isModified = false;
+            } else {
+                // Handle file open error
+                lines.push_back("");
+                startStatusInput("Error: Could not open file. Press any key to continue...", NONE);
+            }
+        }
 };
 
 int main(int argc, char* argv[]) {
