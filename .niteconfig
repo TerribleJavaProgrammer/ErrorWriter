@@ -3,23 +3,24 @@
 default = white
 type = green
 type_modifier = light_gray
-cast = cyan
+cast = red
 control_flow = yellow
 operator = magenta
-memory_management = blue
+memory_management = cyan
 exception_handling = red
 oop = blue
 template = cyan
-namespace = dark_blue
-coroutine = magenta
-concept = yellow
+namespace = magenta
+coroutine = red
+concept = cyan
 boolean_literal = green
 null = dark_red
-preprocessor = cyan
-misc = dark_magenta
-highlight = bg_red
+preprocessor = yellow
+misc = light_gray
+highlight = bg_dark_blue
 tabSize = 4
 syntaxHighlighting = true
 
 # Example Text:
 # bool, const, const_cast, if, +, new, try, class, template, namespace, decltype, operator, true, nullptr, define, co_await, concept, asm
+

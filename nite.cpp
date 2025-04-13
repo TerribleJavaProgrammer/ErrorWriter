@@ -31,7 +31,7 @@ std::unordered_map<std::string, WORD> colorMap = {
     {"magenta", FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY},
     {"yellow", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY},
     {"white", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY},
-
+    // Background
     {"bg_black", 0},
     {"bg_dark_blue", BACKGROUND_BLUE},
     {"bg_dark_green", BACKGROUND_GREEN},
