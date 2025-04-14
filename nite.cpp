@@ -820,7 +820,7 @@ class Nite {
                         }
                         for (int i = start; i < x; ++i) {
                             int bufferPosStr = y * screenCols + (i - colOffset);
-                            attributes[bufferPosStr + gutterWidth] = FOREGROUND_BLUE;
+                            attributes[bufferPosStr + gutterWidth] = TYPE_COLOR;
                         }
                         continue;
                     }
@@ -829,7 +829,7 @@ class Nite {
                     if (line[x] == '/' && x + 1 < lineEnd && line[x + 1] == '/') {
                         while (x < lineEnd) {
                             int commentPos = y * screenCols + (x - colOffset);
-                            attributes[commentPos + gutterWidth] = FOREGROUND_GREEN;  // Dark green
+                            attributes[commentPos + gutterWidth] = MISC_COLOR;
                             ++x;
                         }
                         continue;
