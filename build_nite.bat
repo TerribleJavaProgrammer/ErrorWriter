@@ -1,13 +1,17 @@
 @echo off
 setlocal
 
-:: Check for MSYS2 or MinGW
-where.exe gcc >nul 2>nul
-
+:: Check for required tools
+where gcc >nul 2>nul
 if %errorlevel% neq 0 (
-    echo Neither MSYS2 or MinGW are installed. Would you like to install MSYS2? (y/n)
+    echo Neither MSYS2 nor MinGW are installed. Would you like to install MSYS2? (y/n)
     set /p response=
     if /i "%response%" == "y" (
+        where curl >nul 2>nul
+        if %errorlevel% neq 0 (
+            echo curl not found. Please install it manually.
+            exit /b
+        )
         echo Installing MSYS2...
         curl -L https://repo.msys2.org/distrib/x86_64/msys2-x86_64-20210625.exe -o msys2-installer.exe
         start msys2-installer.exe
@@ -19,28 +23,40 @@ if %errorlevel% neq 0 (
     )
 )
 
-:: Clone the repository if it doesn't exist
-if not exisdt "nite" (
+where git >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Git is not installed or not in PATH.
+    exit /b
+)
+
+:: Clone repo if it doesn't exist
+if not exist "nite" (
     git clone https://github.com/TerribleJavaProgrammer/nite.git
 )
 
-cd nite
+pushd nite
 echo Compiling Nite...
 
-:: Run make command (make sure MinGW/MSYS2 is set up with GCC)
+where make >nul 2>nul
+if %errorlevel% neq 0 (
+    echo 'make' not found. Please ensure it's available.
+    pause
+    popd
+    exit /b
+)
+
 make
 
-:: Get the absolute path of the executable
 set EXE_PATH=%cd%\nite.exe
 
-:: Add Nite to the PATH for the current session
-echo Adding Nite to system PATH for this session...
-set PATH = %PATH%;%EXE_PATH%
+echo Adding Nite to session PATH...
+set PATH=%PATH%;%cd%
 
-:: Permanently add Nite to the user's PATH
-echo Permanently adding Nite to PATH...
-setx Path "%PATH%"
+echo.
+echo If you want to run Nite from any terminal session, add this to your PATH manually:
+echo %cd%
+echo.
 
-echo Compilation complete. You can now run Nite from any directory by typing 'nite <filename>'.
+popd
 pause
 endlocal
