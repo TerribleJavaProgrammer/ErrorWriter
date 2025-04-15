@@ -1,7 +1,7 @@
 #ifndef RENDER_HPP
 #define RENDER_HPP
-#include "buffer.hpp"
-#include "editor.hpp"
+#include "core/buffer.hpp"
+#include "core/editor.hpp"
 
 void renderBuffer(Buffer& buf, EditorState& editor);
 

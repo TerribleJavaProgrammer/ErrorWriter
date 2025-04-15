@@ -1,4 +1,4 @@
-#include "colors.hpp"
+#include "ui/colors.hpp"
 
 Color getColorFromTheme(const std::string tokenType) {
     // Implement a function that uses the theme to get the color of a token type

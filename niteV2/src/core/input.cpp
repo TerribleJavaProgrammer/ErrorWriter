@@ -1,4 +1,4 @@
-#include "input.hpp"
+#include "core/input.hpp"
 
 InputEvent pollInput() {
     // Implement a function to poll input

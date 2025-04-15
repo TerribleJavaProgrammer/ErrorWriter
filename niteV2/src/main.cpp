@@ -16,4 +16,3 @@ void mainLoop() {
 void shutdownEditor() {
     // Implement function to shut down editor.
 }
-

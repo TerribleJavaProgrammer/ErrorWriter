@@ -1,4 +1,4 @@
-#include "screen.hpp"
+#include "core/screen.hpp"
 
 void clearScreen() {
     // Implement a method that clears the screen

@@ -2,6 +2,7 @@
 #define WINCONSOLE_HPP
 
 #include <windows.h>
+#include <conio.h>
 
 void initConsole();
 

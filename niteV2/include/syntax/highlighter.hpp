@@ -1,7 +1,7 @@
 #ifndef HIGHLIGHTER_HPP
 #define HIGHLIGHTER_HPP
 #include <string>
-#include "colors.hpp"
+#include "ui/colors.hpp"
 #include "syntaxTree.hpp"
 #include "token.hpp"
 

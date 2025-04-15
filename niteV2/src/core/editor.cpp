@@ -1,4 +1,4 @@
-#include "editor.hpp"
+#include "core/editor.hpp"
 
 EditorState::EditorState() {
     // Write a constructor for the EditorState class

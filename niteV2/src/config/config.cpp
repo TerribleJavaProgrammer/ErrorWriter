@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "config/config.hpp"
 
 void loadConfig(const std::string path) {
     // Implement function to load .niteconfig file

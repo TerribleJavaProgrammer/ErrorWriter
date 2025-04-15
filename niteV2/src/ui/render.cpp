@@ -1,4 +1,4 @@
-#include "render.hpp"
+#include "ui/render.hpp"
 
 void renderBuffer(Buffer& buf, EditorState& editor) {
     // Implement a function that renders a buffer

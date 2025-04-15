@@ -1,4 +1,4 @@
-#include "clangCpp.hpp"
+#include "syntax/clangCpp.hpp"
 
 void parseCppSyntax(Buffer& buf, SyntaxTree& tree) {
     // Implement a function that parses CPP syntax

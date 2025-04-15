@@ -1,4 +1,4 @@
-#include "fileEntry.hpp"
+#include "filesystem/fileEntry.hpp"
 
 FileEntry::FileEntry(const std::string& filePath) {
     // Implement the contsructor to the FileEntry class

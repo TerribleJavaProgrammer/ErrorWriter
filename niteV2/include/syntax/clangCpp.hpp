@@ -1,6 +1,6 @@
 #ifndef CLANGCPP_HPP
 #define CLANGCPP_HPP
-#include "buffer.hpp"
+#include "core/buffer.hpp"
 #include "syntaxTree.hpp"
 #include "token.hpp"
 

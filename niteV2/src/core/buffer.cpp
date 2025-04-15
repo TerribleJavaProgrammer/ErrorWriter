@@ -1,4 +1,4 @@
-#include "buffer.hpp"
+#include "core/buffer.hpp"
 
 Buffer::Buffer() {
     // Write a constructor for the buffer class

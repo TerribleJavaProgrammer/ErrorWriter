@@ -1,6 +1,6 @@
-#include "token.hpp"
+#include "syntax/token.hpp"
 
-Token::Token(std::string value, TokenType type, int line = -1, int column = -1) {
+Token::Token(std::string value, TokenType type, int line, int column) {
     // Implement a constructor for the token class
 }
 

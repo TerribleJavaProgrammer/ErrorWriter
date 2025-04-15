@@ -1,25 +1,40 @@
-#include "winConsole.hpp"
+#include "ui/winConsole.hpp"
+
+static HANDLE hConsole = nullptr;
+static DWORD originalMode = 0;
 
 void initConsole() {
-    // Implement function to initialize the console
+    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    GetConsoleMode(hConsole, &originalMode);
 }
 
 void setCursorPosition(int x, int y) {
-    // Implement function to set the cursor position
+    COORD position = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(hConsole, position);
 }
 
 void hideCursor() {
-    // Implement function to hide the cursor
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = FALSE;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
 void showCursor() {
-    // Implement function to show the cursor
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = TRUE;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
 void enableRawMode() {
-    // Implement function to enable raw mode
+    DWORD mode;
+    GetConsoleMode(hConsole, &mode);
+    mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+    mode |= ENABLE_PROCESSED_INPUT;
+    SetConsoleMode(hConsole, mode);
 }
 
 void disableRawMode() {
-    // Implement function to disable raw mode
+    SetConsoleMode(hConsole, originalMode);
 }

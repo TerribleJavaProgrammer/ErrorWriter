@@ -1,4 +1,4 @@
-#include "theme.hpp"
+#include "config/theme.hpp"
 
 void loadTheme(const std::string themeName) {
     // Implement theme loader function
