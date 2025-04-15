@@ -1,4 +1,7 @@
-# NITE stands for
+# Nite V1
+Not great.
+
+### NITE stands for
 Nimble Interactive Text Editor
 
 ### Windows CLI Text Editor
