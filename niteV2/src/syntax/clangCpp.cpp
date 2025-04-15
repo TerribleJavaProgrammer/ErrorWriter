@@ -44,23 +44,20 @@ void parseCppSyntax(Buffer& buf, SyntaxTree& tree) {
     tree.buildTree(tokens);
 }
 
-Token& getTokens(SyntaxTree& tree) {
-    std::vector<std::shared_ptr<Token>> tokens;
+std::vector<Token> getTokens(SyntaxTree& tree) {
+    std::vector<Token> tokens;
     auto root = tree.getRoot();
 
-    // Traverse the tree and collect tokens (assuming a simple in-order traversal)
+    // Traverse the tree and collect tokens
     std::function<void(std::shared_ptr<SyntaxTreeNode>)> traverse;
     traverse = [&](std::shared_ptr<SyntaxTreeNode> node) {
         if (node) {
-            tokens.push_back(node->getToken());  // Collect token from the node
-            traverse(node->getLeftChild());      // Traverse left subtree
-            traverse(node->getRightChild());     // Traverse right subtree
+            tokens.push_back(*node->getToken());  // Add token to the vector
+            traverse(node->getLeftChild());       // Traverse left subtree
+            traverse(node->getRightChild());      // Traverse right subtree
         }
     };
 
     traverse(root);  // Start from the root of the tree
-
-    // Returning a reference to the first token for simplicity, but ideally,
-    // you might want to return a collection of tokens depending on the context.
-    return *tokens.front();
+    return tokens;   // Return the vector of tokens
 }

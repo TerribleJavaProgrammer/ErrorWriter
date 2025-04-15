@@ -7,6 +7,13 @@ InputEvent pollInput() {
     if (_kbhit()) {  // If a key is pressed
         char ch = _getch();  // Get the key
 
+        // Add backspace handling
+        if (ch == 8) {  // ASCII 8 is backspace
+            event.isChar = false;
+            event.specialKey = SpecialKey::Backspace;
+            return event;
+        }
+        
         // Check if the key is a special key (arrow keys, etc.)
         if (ch == 0 || ch == 224) {  // Special key prefix (e.g., arrow keys)
             ch = _getch();  // Get the actual special key

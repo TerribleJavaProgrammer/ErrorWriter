@@ -8,4 +8,4 @@
 
 void parseCppSyntax(Buffer& buf, SyntaxTree& tree);
 
-Token& getTokens(SyntaxTree& tree);
+std::vector<Token> getTokens(SyntaxTree& tree);

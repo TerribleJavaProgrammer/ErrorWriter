@@ -1,9 +1,9 @@
 #include "syntax/syntaxTree.hpp"
 
 // Helper functions to parse specific grammar parts
-std::shared_ptr<SyntaxTreeNode> parseExpression(std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
-std::shared_ptr<SyntaxTreeNode> parseTerm(std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
-std::shared_ptr<SyntaxTreeNode> parseFactor(std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
+std::shared_ptr<SyntaxTreeNode> parseExpression(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
+std::shared_ptr<SyntaxTreeNode> parseTerm(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
+std::shared_ptr<SyntaxTreeNode> parseFactor(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index);
 
 // Main buildTree function
 void SyntaxTree::buildTree(const std::vector<std::shared_ptr<Token>>& tokens) {
@@ -15,7 +15,7 @@ void SyntaxTree::buildTree(const std::vector<std::shared_ptr<Token>>& tokens) {
 }
 
 // Parse expressions (E = T | E O T)
-std::shared_ptr<SyntaxTreeNode> parseExpression(std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
+std::shared_ptr<SyntaxTreeNode> parseExpression(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
     auto left = parseTerm(tokens, index);
 
     while (index < tokens.size() &&
@@ -36,7 +36,7 @@ std::shared_ptr<SyntaxTreeNode> parseExpression(std::vector<std::shared_ptr<Toke
 }
 
 // Parse terms (T = F | T O F)
-std::shared_ptr<SyntaxTreeNode> parseTerm(std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
+std::shared_ptr<SyntaxTreeNode> parseTerm(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
     auto left = parseFactor(tokens, index);
 
     while (index < tokens.size() &&
@@ -56,7 +56,7 @@ std::shared_ptr<SyntaxTreeNode> parseTerm(std::vector<std::shared_ptr<Token>>& t
 }
 
 // Parse factors (F = Literal | '(' E ')')
-std::shared_ptr<SyntaxTreeNode> parseFactor(std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
+std::shared_ptr<SyntaxTreeNode> parseFactor(const std::vector<std::shared_ptr<Token>>& tokens, size_t& index) {
     if (tokens[index]->getType() == TokenType::Literal || 
         tokens[index]->getType() == TokenType::Integer || 
         tokens[index]->getType() == TokenType::FloatingPoint || 

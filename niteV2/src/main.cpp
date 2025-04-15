@@ -120,23 +120,42 @@ void openFile(const std::string& filePath) {
 }
 
 int main(int argc, char* argv[]) {
-    // Initialize the editor
-    initializeEditor();
+    // Create editor state
+    EditorState editor;
     
-    // Check if a file path was provided as an argument
+    // Initialize editor
+    editor.initEditor();
+    
+    // If there's a file specified, load it
     if (argc > 1) {
-        std::string filePath = argv[1];
-        openFile(filePath);
-    } else {
-        // No file provided, start with an empty buffer
-        editorState.getBuffer().initBuffer();
+        editor.getBuffer().loadFile(argv[1]);
     }
     
-    // Enter the main loop
-    mainLoop();
+    // Enter edit mode
+    editor.setMode(EditorMode::Normal);
     
-    // Clean up before exiting
-    shutdownEditor();
+    // Main edit loop
+    bool running = true;
+    while (running) {
+        // Render the editor
+        editor.renderEditor();
+        
+        // Poll for input
+        InputEvent event = pollInput();
+        
+        // Check for exit condition (e.g., Escape key in Normal mode)
+        if (!event.isChar && event.specialKey == SpecialKey::Escape && 
+            editor.getMode() == EditorMode::Normal) {
+            running = false;
+        }
+        
+        // Update the editor based on the input
+        editor.updateEditor(event);
+    }
+    
+    // Clean up
+    disableRawMode();
+    showCursor();
     
     return 0;
 }
