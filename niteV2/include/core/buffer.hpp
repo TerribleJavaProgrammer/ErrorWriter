@@ -1,5 +1,4 @@
-#ifndef BUFFER_HPP
-#define BUFFER_HPP
+#pragma once
 #include <string>
 #include <vector>
 #include <fstream>
@@ -39,5 +38,3 @@ class Buffer {
         BufferMode getMode();
         void setMode(BufferMode mode);
 };
-
-#endif // BUFFER_HPP

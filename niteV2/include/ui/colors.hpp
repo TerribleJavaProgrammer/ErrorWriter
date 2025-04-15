@@ -1,5 +1,4 @@
-#ifndef COLORS_HPP
-#define COLORS_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -12,6 +11,9 @@ struct Color {
 
     // Constructor to initialize RGB values
     Color(int red, int green, int blue) : r(red), g(green), b(blue) {}
+
+    // Default constructor to ignore errors
+    Color(): r(0), g(0), b(0) {}
 };
 
 // Set the foreground color based on the Color struct
@@ -25,5 +27,3 @@ std::string colorToAnsiCode(const Color& color);
 
 // Helper function to get the string representation of a Color (for debugging)
 std::string colorToString(const Color& color);
-
-#endif // COLORS_HPP

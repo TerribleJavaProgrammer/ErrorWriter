@@ -1,5 +1,4 @@
-#ifndef HIGHLIGHTER_HPP
-#define HIGHLIGHTER_HPP
+#pragma once
 #include <string>
 #include <sstream>
 #include <cctype>
@@ -13,5 +12,3 @@
 
 void highlightLine(const std::string line, std::vector<Token>& outTokens);
 Color getTokenColor(const Token& t);
-
-#endif HIGHLIGHTER_HPP

@@ -1,5 +1,4 @@
-#ifndef BROWSER_HPP
-#define BROWSER_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -29,5 +28,3 @@ public:
 private:
     std::string currentPath; // Current directory path
 };
-
-#endif // BROWSER_HPP

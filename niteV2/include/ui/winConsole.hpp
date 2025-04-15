@@ -1,5 +1,4 @@
-#ifndef WINCONSOLE_HPP
-#define WINCONSOLE_HPP
+#pragma once
 
 #include <windows.h>
 #include <conio.h>
@@ -18,5 +17,3 @@ void enableRawMode();
 void disableRawMode();
 
 std::pair<int, int> getScreenDimensions();
-
-#endif // WINCONSOLE_HPP

@@ -1,5 +1,4 @@
-#ifndef FILEENTRY_HPP
-#define FILEENTRY_HPP
+#pragma once
 
 #include <string>
 #include <chrono>
@@ -44,5 +43,3 @@ class FileEntry {
         // Helper function to update last modified time
         void updateLastModifiedTime();
 };
-
-#endif // FILEENTRY_HPP

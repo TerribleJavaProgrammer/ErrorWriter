@@ -1,5 +1,4 @@
-#ifndef INPUT_HPP
-#define INPUT_HPP
+#pragma once
 
 #include <iostream>
 #include <conio.h>
@@ -27,5 +26,3 @@ struct InputEvent {
 InputEvent pollInput();         // Capture user input and return it as an InputEvent
 bool isSpecialKey(InputEvent e); // Check if the input is a special key
 char inputToChar(InputEvent e);  // Convert InputEvent to a character (returns '\0' for special keys)
-
-#endif // INPUT_HPP

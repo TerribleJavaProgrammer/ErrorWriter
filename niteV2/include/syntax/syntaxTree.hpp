@@ -1,5 +1,4 @@
-#ifndef SYNTAXTREE_HPP
-#define SYNTAXTREE_HPP
+#pragma once
 
 #include <vector>
 #include <string>
@@ -43,5 +42,3 @@ class SyntaxTree {
     private:
         std::shared_ptr<SyntaxTreeNode> root;  // Root node of the syntax tree
 };
-
-#endif // SYNTAXTREE_HPP

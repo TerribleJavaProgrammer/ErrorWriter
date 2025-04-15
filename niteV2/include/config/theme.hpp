@@ -1,5 +1,4 @@
-#ifndef THEME_HPP
-#define THEME_HPP
+#pragma once
 #include <string>
 #include <unordered_map>
 #include <fstream>
@@ -10,5 +9,3 @@
 void loadTheme(const std::string themeName);
 
 Color getColor(const std::string elementName);
-
-#endif THEME_HPP

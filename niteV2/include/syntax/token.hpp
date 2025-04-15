@@ -1,5 +1,4 @@
-#ifndef TOKEN_HPP
-#define TOKEN_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -82,5 +81,3 @@ class Token {
         int line;            // The line number in the source code (optional)
         int column;          // The column number in the source code (optional)
 };
-
-#endif // TOKEN_HPP

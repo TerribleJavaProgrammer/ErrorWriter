@@ -1,9 +1,8 @@
-#ifndef EDITOR_HPP
-#define EDITOR_HPP
+#pragma once
 
 #include "buffer.hpp"
 #include "input.hpp"
-#include "render.hpp"
+#include "ui/render.hpp"
 
 // Enum for different modes of the editor (e.g., Normal, Insert, Command)
 enum class EditorMode {
@@ -38,5 +37,3 @@ class EditorState {
         int cursorRow;              // Row position of the cursor
         int cursorCol;              // Column position of the cursor
 };
-
-#endif // EDITOR_HPP

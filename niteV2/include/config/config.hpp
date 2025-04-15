@@ -1,5 +1,4 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#pragma once
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -11,5 +10,3 @@ void loadConfig(const std::string path);
 void applyDefaultConfig();
 
 std::string getConfigValue(const std::string& key);
-
-#endif // CONFIG_HPP
