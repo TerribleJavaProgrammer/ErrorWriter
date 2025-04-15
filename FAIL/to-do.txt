@@ -1,0 +1,12 @@
+Important:
+    FIX FLICKER!
+
+Less important:
+    Make syntax highlighting more cohesive
+    Make sure the themes apply to the syntax highlighting
+    Add undo/redo
+    Add line numbers
+    Add multi-file support
+    Add smart indentation
+
+At least make this as good as Nite V1... ☹
