@@ -1,8 +1,11 @@
 #ifndef CLANGCPP_HPP
 #define CLANGCPP_HPP
 #include "core/buffer.hpp"
-#include "syntaxTree.hpp"
-#include "token.hpp"
+#include "syntax/syntaxTree.hpp"
+#include "syntax/token.hpp"
+#include <sstream>
+#include <cctype>
+#include <functional>
 
 void parseCppSyntax(Buffer& buf, SyntaxTree& tree);
 

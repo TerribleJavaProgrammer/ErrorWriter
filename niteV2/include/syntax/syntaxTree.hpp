@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <stdexcept>
 #include "token.hpp"
 
 // SyntaxTreeNode: Represents a single node in the syntax tree
@@ -38,9 +39,6 @@ class SyntaxTree {
 
         // Get the root node of the tree
         std::shared_ptr<SyntaxTreeNode> getRoot() const { return root; }
-
-        // Function to print the tree (for debugging)
-        void printTree(std::shared_ptr<SyntaxTreeNode> node, int depth = 0) const;
 
     private:
         std::shared_ptr<SyntaxTreeNode> root;  // Root node of the syntax tree

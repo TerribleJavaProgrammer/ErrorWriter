@@ -2,6 +2,8 @@
 #define BUFFER_HPP
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 // Enum for managing the buffer's mode (Insert, Normal, Command, etc.)
 enum class BufferMode {
@@ -13,6 +15,9 @@ enum class BufferMode {
 // The Buffer class which represents the text buffer
 class Buffer {
     public:
+        std::vector<std::string> lines;  // Stores the content of the buffer as lines of text
+        BufferMode mode;  // Current mode of the buffer (e.g., Normal, Insert, Command)
+        
         // Constructor
         Buffer();
 
@@ -33,10 +38,6 @@ class Buffer {
         // Mode management
         BufferMode getMode();
         void setMode(BufferMode mode);
-
-    private:
-        std::vector<std::string> lines;  // Stores the content of the buffer as lines of text
-        BufferMode mode;  // Current mode of the buffer (e.g., Normal, Insert, Command)
 };
 
 #endif // BUFFER_HPP

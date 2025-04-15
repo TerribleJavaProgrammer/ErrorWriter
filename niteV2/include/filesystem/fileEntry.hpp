@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 class FileEntry {
     public:

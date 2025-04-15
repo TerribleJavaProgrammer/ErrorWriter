@@ -1,12 +1,33 @@
 #ifndef BROWSER_HPP
 #define BROWSER_HPP
+
 #include <string>
-#include "fileEntry.hpp"
+#include <vector>
+#include <iostream>
+#include <filesystem>
 
-void listDirectory(const std::string path, FileEntry& out, int& count);
+// Represents a file entry (could be a directory or file)
+struct FileEntry {
+    std::string name;   // Name of the file or directory
+    bool isDirectory;   // True if it's a directory, false if it's a file
+};
 
-void changeDirectory(const std::string path);
+// Class responsible for file browsing
+class FileBrowser {
+public:
+    FileBrowser(const std::string& rootPath); // Constructor with the root path for browsing
 
-bool isDirectory(const std::string path);
+    // List all files and directories in the current directory
+    std::vector<FileEntry> listFiles();
+
+    // Change the current directory
+    void changeDirectory(const std::string& dir);
+
+    // Get the current directory
+    std::string getCurrentDirectory() const;
+
+private:
+    std::string currentPath; // Current directory path
+};
 
 #endif // BROWSER_HPP

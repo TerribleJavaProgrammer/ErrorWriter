@@ -2,6 +2,7 @@
 #define INPUT_HPP
 
 #include <iostream>
+#include <conio.h>
 
 // Enum for special keys (Exapnsible)
 enum class SpecialKey {

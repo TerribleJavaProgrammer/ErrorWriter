@@ -1,37 +1,72 @@
 #include "core/buffer.hpp"
 
 Buffer::Buffer() {
-    // Write a constructor for the buffer class
+    initBuffer();
 }
 
 void Buffer::initBuffer() {
-    // Write method to initialize buffer
+    lines.clear();
+    lines.push_back("");  // Start with one empty line
+    mode = BufferMode::Normal;
 }
 
 void Buffer::insertChar(int row, int col, char c) {
-    // Write method to insert a character given a row, col, and char
+    if (row < 0 || row >= (int)lines.size()) return;
+
+    std::string& line = lines[row];
+    if (col < 0) col = 0;
+    if (col > (int)line.length()) col = line.length();
+
+    line.insert(line.begin() + col, c);
 }
 
 void Buffer::deleteChar(int row, int col) {
-    // Write a method to delete a character given a row and col
+    if (row < 0 || row >= (int)lines.size()) return;
+
+    std::string& line = lines[row];
+    if (col < 0 || col >= (int)line.length()) return;
+
+    line.erase(line.begin() + col);
 }
 
 std::string Buffer::getLine(int row) {
-    // Write a method to return a line given a buffer and a row
+    if (row < 0 || row >= (int)lines.size()) return "";
+    return lines[row];
 }
 
 void Buffer::loadFile(const std::string& path) {
-    // Write a method to load a file into the buffer provided given a path
-} 
+    std::ifstream file(path);
+    lines.clear();
+
+    if (!file) {
+        lines.push_back("");  // If file can't be opened, start with empty buffer
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        lines.push_back(line);
+    }
+
+    if (lines.empty()) {
+        lines.push_back("");  // Ensure at least one line exists
+    }
+}
 
 void Buffer::saveFile(const std::string& path) {
-    // Write a method to save a buffer to the file at the given path
+    std::ofstream file(path);
+    if (!file) return;
+
+    for (size_t i = 0; i < lines.size(); ++i) {
+        file << lines[i];
+        if (i != lines.size() - 1) file << '\n';
+    }
 }
 
 BufferMode Buffer::getMode() {
-    // Write a method to get the mode of the buffer
+    return mode;
 }
 
-void Buffer::setMode(BufferMode mode) {
-    // Write a method to set the mode of the buffer
+void Buffer::setMode(BufferMode newMode) {
+    mode = newMode;
 }

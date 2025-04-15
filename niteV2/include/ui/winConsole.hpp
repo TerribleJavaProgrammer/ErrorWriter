@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <conio.h>
+#include <utility>
 
 void initConsole();
 
@@ -15,5 +16,7 @@ void showCursor();
 void enableRawMode();
 
 void disableRawMode();
+
+std::pair<int, int> getScreenDimensions();
 
 #endif // WINCONSOLE_HPP

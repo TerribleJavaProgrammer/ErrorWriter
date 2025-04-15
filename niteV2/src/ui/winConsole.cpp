@@ -38,3 +38,14 @@ void enableRawMode() {
 void disableRawMode() {
     SetConsoleMode(hConsole, originalMode);
 }
+
+// Method to get the screen dimensions (width and height)
+std::pair<int, int> getScreenDimensions() {
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        return {csbi.srWindow.Right - csbi.srWindow.Left + 1,
+                csbi.srWindow.Bottom - csbi.srWindow.Top + 1};
+    }
+    // In case of error, return (0, 0)
+    return {0, 0};
+}

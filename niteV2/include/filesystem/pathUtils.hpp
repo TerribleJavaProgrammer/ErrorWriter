@@ -1,5 +1,8 @@
 #ifndef PATHUTILS_HPP
 #define PATHUTILS_HPP
+
+#include <filesystem>
+#include <iostream>
 #include <string>
 
 std::string getAbsolutePath(const std::string relPath);

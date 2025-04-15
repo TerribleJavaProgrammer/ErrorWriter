@@ -1,0 +1,6 @@
+Important:
+    Make syntax highlighting more cohesive
+    Make sure the themes apply to the syntax highlighting
+
+Less important:
+    Debug

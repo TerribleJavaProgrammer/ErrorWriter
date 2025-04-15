@@ -3,6 +3,7 @@
 
 #include "buffer.hpp"
 #include "input.hpp"
+#include "render.hpp"
 
 // Enum for different modes of the editor (e.g., Normal, Insert, Command)
 enum class EditorMode {
@@ -14,6 +15,7 @@ enum class EditorMode {
 // Struct for EditorState (the state of the editor)
 class EditorState {
     public:
+        int topLine = 0;
         // Constructor
         EditorState();
 

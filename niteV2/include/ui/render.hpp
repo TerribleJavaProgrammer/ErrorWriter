@@ -2,6 +2,7 @@
 #define RENDER_HPP
 #include "core/buffer.hpp"
 #include "core/editor.hpp"
+#include "ui/winConsole.hpp"
 
 void renderBuffer(Buffer& buf, EditorState& editor);
 
