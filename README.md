@@ -1,0 +1,3 @@
+# As of 4/14/25...
+
+V1 works. V2 is under construction.
