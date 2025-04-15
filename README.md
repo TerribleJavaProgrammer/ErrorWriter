@@ -1,7 +1,7 @@
 # The NITE Editor Project
 **V1 available. V2 -> fail. Real V2 -> WIP.**
 
-# NITE stands for
+### NITE stands for
 Nimble Interactive Text Editor
 
 ### Windows CLI Text Editor
