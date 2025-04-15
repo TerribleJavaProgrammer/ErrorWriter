@@ -1,2 +1,2 @@
-# V2 Prototype for Nite
-Work in progress 😉
+# Failed V2 Prototype for Nite
+Not being worked on.
