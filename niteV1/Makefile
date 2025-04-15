@@ -8,10 +8,10 @@ CXXFLAGS = -std=c++17 -Wall -Wextra
 LDFLAGS  = -static -static-libgcc -static-libstdc++ -lstdc++fs
 
 # Target executable name
-TARGET   = nite.exe
+TARGET   = nitev1.exe
 
 # Source files
-SRC      = nite.cpp
+SRC      = NiteV1.cpp
 
 # Object files
 OBJ      = $(SRC:.cpp=.o)

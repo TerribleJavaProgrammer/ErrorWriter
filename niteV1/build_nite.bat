@@ -30,7 +30,7 @@ if %errorlevel% neq 0 (
     )
 )
 
-:: Check if Nite exists in any of the directories (Desktop, Documents, Downloads)
+:: Check if nite exists in any of the directories (Desktop, Documents, Downloads)
 if not exist "%DESKTOP_DIR%\nite" if not exist "%DOCUMENTS_DIR%\nite" if not exist "%DOWNLOADS_DIR%\nite" (
     echo Cloning the Nite repository into your user directories...
     git clone https://github.com/TerribleJavaProgrammer/nite.git "%DESKTOP_DIR%\nite"
@@ -38,21 +38,21 @@ if not exist "%DESKTOP_DIR%\nite" if not exist "%DOCUMENTS_DIR%\nite" if not exi
     echo Nite repository already exists in one of your user directories. Skipping clone.
 )
 
-:: Check if Nite exists in the Desktop directory
-if exist "%DESKTOP_DIR%\nite" (
-    set "NITE_DIR=%DESKTOP_DIR%\nite"
+:: Check if NiteV1 exists in the Desktop directory
+if exist "%DESKTOP_DIR%\nite\NiteV1" (
+    set "NITE_DIR=%DESKTOP_DIR%\nite\NiteV1"
 ) 
-:: Check if Nite exists in the Documents directory
-if exist "%DOCUMENTS_DIR%\nite" (
-    set "NITE_DIR=%DOCUMENTS_DIR%\nite"
+:: Check if NiteV1 exists in the Documents directory
+if exist "%DOCUMENTS_DIR%\nite\NiteV1" (
+    set "NITE_DIR=%DOCUMENTS_DIR%\nite\NiteV1"
 )
-:: Check if Nite exists in the Downloads directory
-if exist "%DOWNLOADS_DIR%\nite" (
-    set "NITE_DIR=%DOWNLOADS_DIR%\nite"
+:: Check if NiteV1 exists in the Downloads directory
+if exist "%DOWNLOADS_DIR%\nite\NiteV1" (
+    set "NITE_DIR=%DOWNLOADS_DIR%\nite\NiteV1"
 )
 
 cd "%NITE_DIR%"
-echo Compiling Nite...
+echo Compiling NiteV1...
 
 :: Check for mingw32-make
 where mingw32-make >nul 2>nul
@@ -66,23 +66,22 @@ if %errorlevel% neq 0 (
 mingw32-make
 
 :: Absolute path of the executable
-set "EXE_PATH=%cd%\nite.exe"
+set "EXE_PATH=%cd%\NiteV1.exe"
 
 :: Add to PATH (current session)
-echo Adding Nite to system PATH for this session...
+echo Adding NiteV1 to system PATH for this session...
 set "PATH=%PATH%;%EXE_PATH%"
 
-:: Check if Nite is already in the PATH before permanently adding it
-echo Checking if Nite is already in the system PATH...
+:: Check if NiteV1 is already in the PATH before permanently adding it
+echo Checking if NiteV1 is already in the system PATH...
 echo %PATH% | findstr /C:"%EXE_PATH%" >nul
 if %errorlevel% neq 0 (
-    echo Adding Nite to system PATH permanently...
+    echo Adding NiteV1 to system PATH permanently...
     setx PATH "%PATH%"
 ) else (
-    echo Nite is already in the PATH. Skipping permanent addition.
+    echo NiteV1 is already in the PATH. Skipping permanent addition.
 )
 
-echo "Compilation complete. You can now run Nite from any directory by typing: nite <filename>"
+echo "Compilation complete. You can now run NiteV1 from any directory by typing: nite <filename>"
 pause
 endlocal
-
